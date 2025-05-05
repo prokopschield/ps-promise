@@ -1,6 +1,6 @@
 [package]
 name = "ps-promise"
-version = "0.1.0-1"
+version = "0.1.0-2"
 description = "Promise-like owned futures"
 license = "GPL-3.0-or-later"
 edition = "2021"
