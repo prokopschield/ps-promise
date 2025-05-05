@@ -9,7 +9,7 @@ where
     T: Unpin,
     E: Unpin,
 {
-    Pending(Pin<Box<dyn Future<Output = Result<T, E>>>>),
+    Pending(Pin<Box<dyn Future<Output = Result<T, E>> + Send + Sync>>),
     Resolved(T),
     Rejected(PromiseRejection<E>),
     Consumed,

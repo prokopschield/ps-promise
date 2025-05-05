@@ -2,14 +2,14 @@ use crate::{Promise, PromiseRejection};
 
 impl<T, E> Promise<T, E>
 where
-    T: Send + Unpin + 'static,
-    E: Send + Unpin + 'static,
+    T: Send + Unpin + Sync + 'static,
+    E: Send + Unpin + Sync + 'static,
 {
     pub fn then<TO, EO, CB>(self, callback: CB) -> Promise<TO, EO>
     where
         TO: Unpin,
         EO: Unpin + From<E>,
-        CB: Send + FnOnce(T) -> Result<TO, EO> + 'static,
+        CB: Send + FnOnce(T) -> Result<TO, EO> + Send + Sync + 'static,
     {
         Promise::Pending(Box::pin(async move {
             match self.await {
