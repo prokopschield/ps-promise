@@ -3,7 +3,7 @@ mod methods;
 
 use std::{convert::Infallible, future::Future, pin::Pin};
 
-pub type BoxedPromiseFuture<T, E> = Pin<Box<dyn Future<Output = Result<T, E>> + Send>>;
+pub type BoxedPromiseFuture<T, E> = Pin<Box<dyn Future<Output = Result<T, E>> + Send + Sync>>;
 
 #[must_use = "Promises don't do anything unless you await them!"]
 pub enum Promise<T = Infallible, E = Infallible>
