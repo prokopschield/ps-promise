@@ -19,7 +19,7 @@ where
 pub enum PromiseRejection<E> {
     #[error(transparent)]
     Err(#[from] E),
-    #[error("This happens then a Promise is consumed more than once.")]
+    #[error("This happens when a Promise is consumed more than once.")]
     PromisedConsumedAlready,
 }
 
