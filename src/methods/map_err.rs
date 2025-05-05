@@ -15,8 +15,8 @@ where
                 Ok(value) => Ok(value),
                 Err(err) => match err {
                     PromiseRejection::Err(err) => Err(PromiseRejection::Err(callback(err))),
-                    PromiseRejection::PromisedConsumedAlready => {
-                        Err(PromiseRejection::PromisedConsumedAlready)
+                    PromiseRejection::PromiseConsumedAlready => {
+                        Err(PromiseRejection::PromiseConsumedAlready)
                     }
                 },
             }

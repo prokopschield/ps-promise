@@ -20,7 +20,7 @@ pub enum PromiseRejection<E> {
     #[error(transparent)]
     Err(#[from] E),
     #[error("This happens when a Promise is consumed more than once.")]
-    PromisedConsumedAlready,
+    PromiseConsumedAlready,
 }
 
 pub type Result<T, E> = std::result::Result<T, PromiseRejection<E>>;

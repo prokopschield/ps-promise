@@ -25,9 +25,7 @@ where
             },
             Self::Resolved(value) => std::task::Poll::Ready(Ok(value)),
             Self::Rejected(err) => std::task::Poll::Ready(Err(err)),
-            Self::Consumed => {
-                std::task::Poll::Ready(Err(PromiseRejection::PromisedConsumedAlready))
-            }
+            Self::Consumed => std::task::Poll::Ready(Err(PromiseRejection::PromiseConsumedAlready)),
         }
     }
 }

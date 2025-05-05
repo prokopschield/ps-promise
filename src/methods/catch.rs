@@ -19,8 +19,8 @@ where
                         Ok(value) => Ok(value),
                         Err(err) => Err(PromiseRejection::<EO>::Err(err)),
                     },
-                    PromiseRejection::PromisedConsumedAlready => {
-                        Err(PromiseRejection::PromisedConsumedAlready)
+                    PromiseRejection::PromiseConsumedAlready => {
+                        Err(PromiseRejection::PromiseConsumedAlready)
                     }
                 },
             }

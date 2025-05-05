@@ -19,8 +19,8 @@ where
                 },
                 Err(err) => match err {
                     PromiseRejection::Err(err) => Err(PromiseRejection::<EO>::Err(err.into())),
-                    PromiseRejection::PromisedConsumedAlready => {
-                        Err(PromiseRejection::PromisedConsumedAlready)
+                    PromiseRejection::PromiseConsumedAlready => {
+                        Err(PromiseRejection::PromiseConsumedAlready)
                     }
                 },
             }
