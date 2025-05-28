@@ -10,11 +10,13 @@ where
         TO: Unpin,
         CB: Send + FnOnce(T) -> TO + Send + Sync + 'static,
     {
-        Promise::Pending(Box::pin(async move {
+        let future = async move {
             match self.await {
                 Ok(value) => Ok(callback(value)),
                 Err(err) => Err(err),
             }
-        }))
+        };
+
+        Promise::Pending(Box::pin(future))
     }
 }

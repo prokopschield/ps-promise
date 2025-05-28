@@ -11,11 +11,13 @@ where
     where
         F: Future<Output = Result<T, E>> + Send + Sync + 'static,
     {
-        Self::Pending(Box::pin(async move {
+        let future = async move {
             match future.await {
                 Ok(value) => Ok(value),
                 Err(err) => Err(crate::PromiseRejection::Err(err)),
             }
-        }))
+        };
+
+        Self::Pending(Box::pin(future))
     }
 }

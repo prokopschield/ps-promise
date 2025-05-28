@@ -11,7 +11,7 @@ where
         EO: Unpin,
         CB: Send + FnOnce(E) -> Result<TO, EO> + Sync + 'static,
     {
-        Promise::Pending(Box::pin(async move {
+        let future = async move {
             match self.await {
                 Ok(value) => Ok(value.into()),
                 Err(err) => match err {
@@ -24,6 +24,8 @@ where
                     }
                 },
             }
-        }))
+        };
+
+        Promise::Pending(Box::pin(future))
     }
 }
