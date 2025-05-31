@@ -1,5 +1,8 @@
 mod implementations;
 mod methods;
+mod transformer;
+
+pub use transformer::{BoxedFuture, Transform, Transformer};
 
 use std::{convert::Infallible, future::Future, pin::Pin};
 
