@@ -5,7 +5,7 @@ where
     T: Unpin,
     E: Unpin,
 {
-    pub fn reject(err: E) -> Self {
+    pub const fn reject(err: E) -> Self {
         Self::Rejected(crate::PromiseRejection::Err(err))
     }
 }

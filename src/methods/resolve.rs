@@ -5,7 +5,7 @@ where
     T: Unpin,
     E: Unpin,
 {
-    pub fn resolve(value: T) -> Self {
+    pub const fn resolve(value: T) -> Self {
         Self::Resolved(value)
     }
 }
