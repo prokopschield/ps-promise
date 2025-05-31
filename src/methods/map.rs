@@ -1,18 +1,21 @@
-use crate::Promise;
+use crate::{Promise, PromiseRejection, Transformer};
 
 impl<T, E> Promise<T, E>
 where
     T: Send + Unpin + Sync + 'static,
     E: Send + Unpin + Sync + 'static,
 {
-    pub fn map<TO, CB>(self, callback: CB) -> Promise<TO, E>
+    pub fn map<TO, CB>(self, transformer: Transformer<T, TO, E>) -> Promise<TO, E>
     where
-        TO: Unpin,
-        CB: Send + FnOnce(T) -> TO + Send + Sync + 'static,
+        TO: Unpin + 'static,
+        CB: Send + FnOnce(T) -> TO + Sync,
     {
         let future = async move {
             match self.await {
-                Ok(value) => Ok(callback(value)),
+                Ok(value) => match (transformer.transform)(value).await {
+                    Ok(value) => Ok(value),
+                    Err(err) => Err(PromiseRejection::<E>::Err(err)),
+                },
                 Err(err) => Err(err),
             }
         };
