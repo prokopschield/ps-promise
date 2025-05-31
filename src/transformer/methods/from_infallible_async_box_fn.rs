@@ -4,11 +4,14 @@ use crate::Transformer;
 
 impl<I, O, E> Transformer<I, O, E>
 where
-    I: Send + 'static,
+    I: Send + Sync + 'static,
 {
     pub fn from_infallible_async_box_fn<T>(transform_fn: T) -> Self
     where
-        T: Fn(I) -> Pin<Box<dyn Future<Output = O> + Send + 'static>> + Send + Sync + 'static,
+        T: Fn(I) -> Pin<Box<dyn Future<Output = O> + Send + Sync + 'static>>
+            + Send
+            + Sync
+            + 'static,
     {
         let transform_fn = Arc::new(transform_fn);
 

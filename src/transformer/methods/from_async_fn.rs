@@ -4,11 +4,11 @@ use crate::Transformer;
 
 impl<I, O, E> Transformer<I, O, E>
 where
-    I: Send + 'static,
+    I: Send + Sync + 'static,
 {
     pub fn from_async_fn<F, T>(transform_fn: T) -> Self
     where
-        F: Future<Output = Result<O, E>> + Send + 'static,
+        F: Future<Output = Result<O, E>> + Send + Sync + 'static,
         T: Fn(I) -> F + Send + Sync + 'static,
     {
         let transform_fn = Arc::new(transform_fn);

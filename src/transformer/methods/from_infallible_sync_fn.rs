@@ -4,7 +4,7 @@ use crate::Transformer;
 
 impl<I, O, E> Transformer<I, O, E>
 where
-    I: Send + 'static,
+    I: Send + Sync + 'static,
 {
     pub fn from_infallible_sync_fn<T>(transform_fn: T) -> Self
     where
