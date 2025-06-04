@@ -6,7 +6,7 @@ impl<I, O, E> Transformer<I, O, E>
 where
     I: Send + Sync + 'static,
 {
-    pub fn from_sync_fn<F, T>(transform_fn: T) -> Self
+    pub fn from_sync_fn<T>(transform_fn: T) -> Self
     where
         T: Fn(I) -> Result<O, E> + Send + Sync + 'static,
     {
