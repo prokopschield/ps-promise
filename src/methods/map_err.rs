@@ -5,10 +5,9 @@ where
     T: Send + Unpin + Sync + 'static,
     E: Send + Unpin + Sync + 'static,
 {
-    pub fn map_err<EO, CB>(self, transformer: Transformer<E, EO, EO>) -> Promise<T, EO>
+    pub fn map_err<EO>(self, transformer: Transformer<E, EO, EO>) -> Promise<T, EO>
     where
         EO: Unpin + 'static,
-        CB: Send + FnOnce(E) -> EO + Sync,
     {
         let future = async move {
             match self.await {

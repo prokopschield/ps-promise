@@ -5,7 +5,7 @@ where
     T: Send + Unpin + Sync + 'static,
     E: Send + Unpin + Sync + 'static,
 {
-    pub fn then<TO, EO, CB>(self, transformer: Transformer<T, TO, EO>) -> Promise<TO, EO>
+    pub fn then<TO, EO>(self, transformer: Transformer<T, TO, EO>) -> Promise<TO, EO>
     where
         TO: Unpin + 'static,
         EO: Unpin + From<E> + 'static,
