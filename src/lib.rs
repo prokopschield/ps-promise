@@ -16,16 +16,14 @@ where
 {
     Pending(BoxedPromiseFuture<T, E>),
     Resolved(T),
-    Rejected(PromiseRejection<E>),
+    Rejected(E),
     Consumed,
 }
 
-#[derive(thiserror::Error, Debug)]
-pub enum PromiseRejection<E> {
-    #[error(transparent)]
-    Err(#[from] E),
-    #[error("This happens when a Promise is consumed more than once.")]
-    PromiseConsumedAlready,
+pub trait PromiseRejection
+where
+    Self: Send + Sync + Unpin + 'static,
+{
+    /// This method should return the error variant representing this [`Promise`] being consumed more than once.
+    fn already_consumed() -> Self;
 }
-
-pub type Result<T, E> = std::result::Result<T, PromiseRejection<E>>;

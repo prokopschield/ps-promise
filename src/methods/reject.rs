@@ -6,6 +6,6 @@ where
     E: Unpin,
 {
     pub const fn reject(err: E) -> Self {
-        Self::Rejected(crate::PromiseRejection::Err(err))
+        Self::Rejected(err)
     }
 }

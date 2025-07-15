@@ -1,11 +1,11 @@
 use std::{future::Future, mem::replace};
 
-use crate::{Promise, PromiseRejection, Result};
+use crate::{Promise, PromiseRejection};
 
 impl<T, E> Future for Promise<T, E>
 where
     T: Unpin,
-    E: Unpin,
+    E: PromiseRejection,
 {
     type Output = Result<T, E>;
 
@@ -25,7 +25,7 @@ where
             },
             Self::Resolved(value) => std::task::Poll::Ready(Ok(value)),
             Self::Rejected(err) => std::task::Poll::Ready(Err(err)),
-            Self::Consumed => std::task::Poll::Ready(Err(PromiseRejection::PromiseConsumedAlready)),
+            Self::Consumed => std::task::Poll::Ready(Err(E::already_consumed())),
         }
     }
 }
