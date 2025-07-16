@@ -3,12 +3,12 @@ use std::{
     task::{Context, Poll},
 };
 
-use crate::Promise;
+use crate::{Promise, PromiseRejection};
 
 impl<T, E> Promise<T, E>
 where
     T: Send + Unpin + 'static,
-    E: Send + Unpin + 'static,
+    E: PromiseRejection + 'static,
 {
     /// Polls the promise's inner future if pending.
     /// Returns `true` if the promise is now resolved or rejected.

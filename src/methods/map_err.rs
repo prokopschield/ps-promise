@@ -7,7 +7,7 @@ where
 {
     pub fn map_err<EO>(self, transformer: Transformer<E, EO, EO>) -> Promise<T, EO>
     where
-        EO: Unpin + 'static,
+        EO: PromiseRejection + 'static,
     {
         let future = async move {
             match self.await {

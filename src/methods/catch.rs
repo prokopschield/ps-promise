@@ -8,7 +8,7 @@ where
     pub fn catch<TO, EO>(self, transformer: Transformer<E, TO, EO>) -> Promise<TO, EO>
     where
         TO: From<T> + Unpin + 'static,
-        EO: Unpin + 'static,
+        EO: PromiseRejection + 'static,
     {
         let future = async move {
             match self.await {

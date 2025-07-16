@@ -1,11 +1,11 @@
 use std::future::Future;
 
-use crate::Promise;
+use crate::{Promise, PromiseRejection};
 
 impl<T, E> Promise<T, E>
 where
     T: Unpin,
-    E: Unpin,
+    E: PromiseRejection,
 {
     pub fn new<F>(future: F) -> Self
     where

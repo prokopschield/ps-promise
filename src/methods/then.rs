@@ -8,7 +8,7 @@ where
     pub fn then<TO, EO>(self, transformer: Transformer<T, TO, EO>) -> Promise<TO, EO>
     where
         TO: Unpin + 'static,
-        EO: Unpin + From<E> + 'static,
+        EO: PromiseRejection + From<E> + 'static,
     {
         Promise::Pending(Box::pin(async move {
             match self.await {
