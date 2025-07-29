@@ -2,6 +2,7 @@ mod implementations;
 mod methods;
 mod transformer;
 
+use thiserror::Error;
 pub use transformer::{BoxedFuture, Transform, Transformer};
 
 use std::{future::Future, pin::Pin};
@@ -26,4 +27,24 @@ where
 {
     /// This method should return the error variant representing this [`Promise`] being consumed more than once.
     fn already_consumed() -> Self;
+}
+
+#[derive(Clone, Debug, Error, Hash, PartialEq, Eq, PartialOrd, Ord)]
+pub enum WrappedPromiseRejection<E>
+where
+    E: Send + Sync + Unpin + 'static,
+{
+    #[error("This Promise was consumed already.")]
+    AlreadyConsumed,
+    #[error(transparent)]
+    Rejected(#[from] E),
+}
+
+impl<E> PromiseRejection for WrappedPromiseRejection<E>
+where
+    E: Send + Sync + Unpin + 'static,
+{
+    fn already_consumed() -> Self {
+        Self::AlreadyConsumed
+    }
 }

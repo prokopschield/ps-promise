@@ -5,6 +5,9 @@ edition = "2021"
 description = "Promise-like owned futures"
 license = "GPL-3.0-or-later"
 
+[dependencies]
+thiserror = "2.0.12"
+
 [profile.dev]
 opt-level = 3
 
