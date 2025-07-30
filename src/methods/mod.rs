@@ -6,3 +6,4 @@ mod ready;
 mod reject;
 mod resolve;
 mod then;
+mod wrap;
