@@ -1,3 +1,4 @@
+mod all;
 mod catch;
 mod map;
 mod map_err;
