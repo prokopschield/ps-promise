@@ -1,12 +1,12 @@
 [package]
 name = "ps-promise"
-version = "0.1.0-10"
+version = "0.1.0-11"
 edition = "2021"
 description = "Promise-like owned futures"
 license = "GPL-3.0-or-later"
 
 [dependencies]
-thiserror = "2.0.12"
+thiserror = "2.0.17"
 
 [profile.dev]
 opt-level = 3
