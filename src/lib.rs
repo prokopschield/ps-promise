@@ -48,3 +48,12 @@ where
         Self::AlreadyConsumed
     }
 }
+
+impl<E> PromiseRejection for Vec<E>
+where
+    E: PromiseRejection,
+{
+    fn already_consumed() -> Self {
+        Self::default()
+    }
+}
