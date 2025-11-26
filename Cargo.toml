@@ -6,7 +6,12 @@ description = "Promise-like owned futures"
 license = "GPL-3.0-or-later"
 
 [dependencies]
+anyhow = { version = "1", optional = true }
 thiserror = "2.0.17"
+
+[features]
+default = []
+anyhow = ["dep:anyhow"]
 
 [profile.dev]
 opt-level = 3
