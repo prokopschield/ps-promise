@@ -4,6 +4,7 @@ mod catch;
 mod map;
 mod map_err;
 mod new;
+mod poll_sync;
 mod race;
 mod ready;
 mod reject;
