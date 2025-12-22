@@ -58,3 +58,7 @@ where
         Self::default()
     }
 }
+
+impl PromiseRejection for () {
+    fn already_consumed() -> Self {}
+}
