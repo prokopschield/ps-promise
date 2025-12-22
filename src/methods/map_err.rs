@@ -1,23 +1,23 @@
-use crate::{Promise, PromiseRejection, Transformer};
+use std::future::Future;
+
+use crate::{Promise, PromiseRejection};
 
 impl<T, E> Promise<T, E>
 where
     T: Send + Unpin + Sync + 'static,
     E: PromiseRejection,
 {
-    pub fn map_err<EO>(self, transformer: Transformer<E, EO, EO>) -> Promise<T, EO>
+    pub fn map_err<EO, F, Fut>(self, f: F) -> Promise<T, EO>
     where
         EO: PromiseRejection + 'static,
+        F: FnOnce(E) -> Fut + Send + Sync + 'static,
+        Fut: Future<Output = EO> + Send + Sync + 'static,
     {
-        let future = async move {
+        Promise::Pending(Box::pin(async move {
             match self.await {
                 Ok(value) => Ok(value),
-                Err(err) => match (transformer.transform)(err).await {
-                    Ok(err) | Err(err) => Err(err),
-                },
+                Err(err) => Err(f(err).await),
             }
-        };
-
-        Promise::Pending(Box::pin(future))
+        }))
     }
 }

@@ -1,10 +1,8 @@
 mod features;
 mod implementations;
 mod methods;
-mod transformer;
 
 use thiserror::Error;
-pub use transformer::{BoxedFuture, Transform, Transformer};
 
 use std::{future::Future, pin::Pin};
 
