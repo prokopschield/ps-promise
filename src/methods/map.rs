@@ -11,11 +11,11 @@ where
     where
         TO: Unpin + 'static,
         F: FnOnce(T) -> Fut + Send + Sync + 'static,
-        Fut: Future<Output = Result<TO, E>> + Send + Sync + 'static,
+        Fut: Future<Output = TO> + Send + Sync + 'static,
     {
         Promise::Pending(Box::pin(async move {
             match self.await {
-                Ok(value) => f(value).await,
+                Ok(value) => Ok(f(value).await),
                 Err(err) => Err(err),
             }
         }))
