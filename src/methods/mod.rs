@@ -9,6 +9,8 @@ mod is_resolved;
 mod map;
 mod map_err;
 mod new;
+mod pending;
+mod pending_sync;
 mod poll;
 mod poll_sync;
 mod race;
