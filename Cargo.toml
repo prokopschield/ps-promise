@@ -13,6 +13,16 @@ thiserror = "2.0.17"
 default = []
 anyhow = ["dep:anyhow"]
 
+[lints.clippy]
+all = "warn"
+expect_used = "warn"
+nursery = "warn"
+pedantic = "warn"
+unwrap_used = "warn"
+
+[lints.rust]
+unsafe_code = "forbid"
+
 [profile.dev]
 opt-level = 3
 
