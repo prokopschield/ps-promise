@@ -10,6 +10,7 @@ impl PromiseRejection for anyhow::Error {
 
 #[cfg(test)]
 mod tests {
+    #![allow(clippy::unwrap_used)]
     use anyhow::{anyhow, Error, Result};
 
     use crate::{Promise, PromiseRejection};
@@ -21,8 +22,7 @@ mod tests {
 
         assert!(
             message.contains("Promise was consumed and then awaited"),
-            "Unexpected error message: {}",
-            message
+            "Unexpected error message: {message}"
         );
     }
 

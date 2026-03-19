@@ -123,9 +123,9 @@ mod tests {
         all.ready(&mut cx());
 
         if let Promise::Rejected(v) = all {
-            assert!(v.is_empty(), "Result vector is not empty!")
+            assert!(v.is_empty(), "Result vector is not empty!");
         } else {
-            panic!("Invalid state for empty input: {:?}", all);
+            panic!("Invalid state for empty input: {all:?}");
         }
     }
 
@@ -142,7 +142,7 @@ mod tests {
         if let Promise::Resolved(v) = all {
             assert_eq!(v, 2);
         } else {
-            panic!("Expected Resolved(2), got {:?}", all);
+            panic!("Expected Resolved(2), got {all:?}");
         }
     }
 
@@ -159,7 +159,7 @@ mod tests {
         if let Promise::Rejected(v) = all {
             assert_eq!(v, [1, 2, 3].map(E::Code));
         } else {
-            panic!("Expected Rejected([1,2,3]), got {:?}", all);
+            panic!("Expected Rejected([1,2,3]), got {all:?}");
         }
     }
 }

@@ -75,7 +75,7 @@ mod tests {
         let promise: Promise<(), ()> = Promise::new(async { Err(()) });
 
         match promise.poll_sync() {
-            Promise::Rejected(_) => {}
+            Promise::Rejected(()) => {}
             _ => panic!("expected Rejected"),
         }
     }
@@ -112,10 +112,9 @@ mod tests {
             fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
                 if self.stored.is_none() {
                     self.stored = Some(cx.waker().clone());
-                    Poll::Pending
-                } else {
-                    Poll::Pending
                 }
+
+                Poll::Pending
             }
         }
 
