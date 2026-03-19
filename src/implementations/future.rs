@@ -1,4 +1,7 @@
-use std::{future::Future, mem::replace};
+use std::{
+    future::Future,
+    task::Poll::{Pending, Ready},
+};
 
 use crate::{Promise, PromiseRejection};
 
@@ -15,17 +18,8 @@ where
     ) -> std::task::Poll<Self::Output> {
         let this = self.get_mut();
 
-        match replace(this, Self::Consumed) {
-            Self::Pending(mut future) => match future.as_mut().poll(cx) {
-                std::task::Poll::Pending => {
-                    *this = Self::Pending(future);
-                    std::task::Poll::Pending
-                }
-                std::task::Poll::Ready(value) => std::task::Poll::Ready(value),
-            },
-            Self::Resolved(value) => std::task::Poll::Ready(Ok(value)),
-            Self::Rejected(err) => std::task::Poll::Ready(Err(err)),
-            Self::Consumed => std::task::Poll::Ready(Err(E::already_consumed())),
-        }
+        this.poll(cx);
+
+        this.consume().map_or_else(|| Pending, Ready)
     }
 }
