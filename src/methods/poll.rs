@@ -10,15 +10,15 @@ where
     /// Attempts to advance this [`Promise`] using the provided execution [`Context`].
     ///
     /// This performs exactly one poll of the underlying future.
-    pub fn poll(self, cx: &mut Context<'_>) -> Self {
-        let Self::Pending(mut future) = self else {
-            return self;
+    pub fn poll(&mut self, cx: &mut Context<'_>) {
+        let Self::Pending(future) = self else {
+            return;
         };
 
         match future.as_mut().poll(cx) {
-            Poll::Ready(Ok(value)) => Self::Resolved(value),
-            Poll::Ready(Err(err)) => Self::Rejected(err),
-            Poll::Pending => Self::Pending(future),
+            Poll::Ready(Ok(value)) => *self = Self::Resolved(value),
+            Poll::Ready(Err(err)) => *self = Self::Rejected(err),
+            Poll::Pending => {}
         }
     }
 }
@@ -55,8 +55,9 @@ mod tests {
 
     #[test]
     fn resolves_ready_future() {
-        let promise: Promise<i32, E> = Promise::new(async { Ok(42) });
-        match promise.poll(&mut cx()) {
+        let mut promise: Promise<i32, E> = Promise::new(async { Ok(42) });
+        promise.poll(&mut cx());
+        match promise {
             Promise::Resolved(v) => assert_eq!(v, 42),
             other => panic!("expected Resolved(42), got {other:?}"),
         }
@@ -64,8 +65,9 @@ mod tests {
 
     #[test]
     fn rejects_ready_future() {
-        let promise: Promise<(), E> = Promise::new(async { Err(E::Fail) });
-        match promise.poll(&mut cx()) {
+        let mut promise: Promise<(), E> = Promise::new(async { Err(E::Fail) });
+        promise.poll(&mut cx());
+        match promise {
             Promise::Rejected(E::Fail) => {}
             other => panic!("expected Rejected(Fail), got {other:?}"),
         }
@@ -82,17 +84,16 @@ mod tests {
             }
         }
 
-        let promise: Promise<(), E> = Promise::new(Never);
-        match promise.poll(&mut cx()) {
-            Promise::Pending(_) => {}
-            other => panic!("expected Pending, got {other:?}"),
-        }
+        let mut promise: Promise<(), E> = Promise::new(Never);
+        promise.poll(&mut cx());
+        assert!(promise.is_pending());
     }
 
     #[test]
     fn resolved_is_identity() {
-        let promise: Promise<i32, E> = Promise::resolve(99);
-        match promise.poll(&mut cx()) {
+        let mut promise: Promise<i32, E> = Promise::resolve(99);
+        promise.poll(&mut cx());
+        match promise {
             Promise::Resolved(v) => assert_eq!(v, 99),
             other => panic!("expected Resolved(99), got {other:?}"),
         }
@@ -100,8 +101,9 @@ mod tests {
 
     #[test]
     fn rejected_is_identity() {
-        let promise: Promise<(), E> = Promise::reject(E::Fail);
-        match promise.poll(&mut cx()) {
+        let mut promise: Promise<(), E> = Promise::reject(E::Fail);
+        promise.poll(&mut cx());
+        match promise {
             Promise::Rejected(E::Fail) => {}
             other => panic!("expected Rejected(Fail), got {other:?}"),
         }
@@ -109,11 +111,9 @@ mod tests {
 
     #[test]
     fn consumed_is_identity() {
-        let promise: Promise<(), E> = Promise::Consumed;
-        match promise.poll(&mut cx()) {
-            Promise::Consumed => {}
-            other => panic!("expected Consumed, got {other:?}"),
-        }
+        let mut promise: Promise<(), E> = Promise::Consumed;
+        promise.poll(&mut cx());
+        assert!(promise.is_consumed());
     }
 
     #[test]
@@ -134,20 +134,18 @@ mod tests {
         }
 
         let ready = Arc::new(AtomicBool::new(false));
-        let ready2 = ready.clone();
 
-        let promise: Promise<i32, E> = Promise::new(Delayed { ready: ready2 });
+        let mut promise: Promise<i32, E> = Promise::new(Delayed {
+            ready: ready.clone(),
+        });
 
-        // First poll: still pending
-        let promise = match promise.poll(&mut cx()) {
-            Promise::Pending(f) => Promise::Pending(f),
-            other => panic!("expected Pending, got {other:?}"),
-        };
+        promise.poll(&mut cx());
+        assert!(promise.is_pending());
 
         ready.store(true, Ordering::Relaxed);
 
-        // Second poll: now resolves
-        match promise.poll(&mut cx()) {
+        promise.poll(&mut cx());
+        match promise {
             Promise::Resolved(v) => assert_eq!(v, 7),
             other => panic!("expected Resolved(7), got {other:?}"),
         }
@@ -171,18 +169,18 @@ mod tests {
         }
 
         let ready = Arc::new(AtomicBool::new(false));
-        let ready2 = ready.clone();
 
-        let promise: Promise<(), E> = Promise::new(Delayed { ready: ready2 });
+        let mut promise: Promise<(), E> = Promise::new(Delayed {
+            ready: ready.clone(),
+        });
 
-        let promise = match promise.poll(&mut cx()) {
-            Promise::Pending(f) => Promise::Pending(f),
-            other => panic!("expected Pending, got {other:?}"),
-        };
+        promise.poll(&mut cx());
+        assert!(promise.is_pending());
 
         ready.store(true, Ordering::Relaxed);
 
-        match promise.poll(&mut cx()) {
+        promise.poll(&mut cx());
+        match promise {
             Promise::Rejected(E::Fail) => {}
             other => panic!("expected Rejected(Fail), got {other:?}"),
         }
@@ -206,10 +204,11 @@ mod tests {
         }
 
         let woken = Arc::new(AtomicBool::new(false));
-        let woken2 = woken.clone();
 
-        let promise: Promise<(), E> = Promise::new(StoreWaker { woken: woken2 });
-        drop(promise.poll(&mut cx()));
+        let mut promise: Promise<(), E> = Promise::new(StoreWaker {
+            woken: woken.clone(),
+        });
+        promise.poll(&mut cx());
 
         assert!(
             woken.load(Ordering::Relaxed),
@@ -232,10 +231,11 @@ mod tests {
         }
 
         let count = Arc::new(AtomicUsize::new(0));
-        let count2 = count.clone();
 
-        let promise: Promise<(), E> = Promise::new(Counter { count: count2 });
-        drop(promise.poll(&mut cx()));
+        let mut promise: Promise<(), E> = Promise::new(Counter {
+            count: count.clone(),
+        });
+        promise.poll(&mut cx());
 
         assert_eq!(count.load(Ordering::Relaxed), 1);
     }

@@ -1,6 +1,6 @@
 use std::{
     ptr::null,
-    task::{Context, Poll, RawWaker, RawWakerVTable, Waker},
+    task::{Context, RawWaker, RawWakerVTable, Waker},
 };
 
 use crate::{Promise, PromiseRejection};
@@ -16,19 +16,11 @@ where
     ///
     /// Wakes triggered during this synchronous poll are ignored.
     /// Execution will effectively resume only when the [`Promise`] is polled again by a real executor.
-    pub fn poll_sync(self) -> Self {
-        let Self::Pending(mut future) = self else {
-            return self;
-        };
-
+    pub fn poll_sync(&mut self) {
         let waker = waker();
         let mut cx = Context::from_waker(&waker);
 
-        match future.as_mut().poll(&mut cx) {
-            Poll::Ready(Ok(value)) => Self::Resolved(value),
-            Poll::Ready(Err(err)) => Self::Rejected(err),
-            Poll::Pending => Self::Pending(future),
-        }
+        self.poll(&mut cx);
     }
 }
 
@@ -62,9 +54,10 @@ mod tests {
 
     #[test]
     fn eager_resolves_immediately_ready_future() {
-        let promise = Promise::new(async { Ok::<_, ()>(42) });
+        let mut promise = Promise::new(async { Ok::<_, ()>(42) });
+        promise.poll_sync();
 
-        match promise.poll_sync() {
+        match promise {
             Promise::Resolved(v) => assert_eq!(v, 42),
             _ => panic!("expected Resolved"),
         }
@@ -72,9 +65,10 @@ mod tests {
 
     #[test]
     fn eager_rejects_immediately_ready_future() {
-        let promise: Promise<(), ()> = Promise::new(async { Err(()) });
+        let mut promise: Promise<(), ()> = Promise::new(async { Err(()) });
+        promise.poll_sync();
 
-        match promise.poll_sync() {
+        match promise {
             Promise::Rejected(()) => {}
             _ => panic!("expected Rejected"),
         }
@@ -92,12 +86,10 @@ mod tests {
             }
         }
 
-        let promise = Promise::new(Never);
+        let mut promise = Promise::new(Never);
+        promise.poll_sync();
 
-        match promise.poll_sync() {
-            Promise::Pending(_) => {}
-            _ => panic!("expected Pending"),
-        }
+        assert!(promise.is_pending());
     }
 
     #[test]
@@ -118,11 +110,9 @@ mod tests {
             }
         }
 
-        let promise = Promise::new(CloneWaker { stored: None });
+        let mut promise = Promise::new(CloneWaker { stored: None });
+        promise.poll_sync();
 
-        match promise.poll_sync() {
-            Promise::Pending(_) => {}
-            _ => panic!("expected Pending"),
-        }
+        assert!(promise.is_pending());
     }
 }
