@@ -14,13 +14,11 @@ where
         F: FnOnce(E) -> Fut + Send + Sync + 'static,
         Fut: Future<Output = Result<TO, EO>> + Send + Sync + 'static,
     {
-        let future = async move {
+        Promise::new(async move {
             match self.await {
                 Ok(value) => Ok(value.into()),
                 Err(err) => recover(err).await,
             }
-        };
-
-        Promise::Pending(Box::pin(future))
+        })
     }
 }
