@@ -13,6 +13,7 @@ mod poll;
 mod poll_sync;
 mod race;
 mod ready;
+mod ready_sync;
 mod reject;
 mod resolve;
 mod then;
