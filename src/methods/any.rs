@@ -1,4 +1,7 @@
-use std::{future::Future, mem::replace, task::Poll};
+use std::{
+    future::Future,
+    task::Poll::{Pending, Ready},
+};
 
 use crate::{Promise, PromiseRejection};
 
@@ -28,46 +31,29 @@ where
     ) -> std::task::Poll<Self::Output> {
         let this = self.get_mut();
 
-        let mut n_pending = 0;
+        let mut is_pending = false;
 
-        for promise in &mut this.promises {
-            if promise.ready(cx) {
-                match promise {
-                    Promise::Resolved(_) => {
-                        if let Promise::Resolved(val) = replace(promise, Promise::Consumed) {
-                            return Poll::Ready(Ok(val));
-                        }
-                    }
-
-                    // If it is Consumed or Rejected, we leave it in the list to collect later.
-                    Promise::Consumed | Promise::Rejected(_) => {}
-
-                    // Should not happen if ready() returned true, but handle safely
-                    Promise::Pending(_) => n_pending += 1,
-                }
-            } else {
-                // ready() returned false -> promise is Pending
-                n_pending += 1;
+        this.promises.iter_mut().for_each(|promise| {
+            if promise.pending(cx) {
+                is_pending = true;
             }
-        }
+        });
 
-        if n_pending > 0 {
-            return Poll::Pending;
+        if is_pending {
+            return Pending;
         }
-
-        // Pending promises return Poll::Pending,
-        // Resolved promises return earlier,
-        // Rejected | Consumed promises remain.
 
         let mut errors = Vec::new();
 
-        for promise in this.promises.drain(..) {
-            if let Promise::Rejected(err) = promise {
-                errors.push(err);
+        for promise in &mut this.promises {
+            match promise.consume() {
+                Some(Ok(val)) => return Ready(Ok(val)),
+                Some(Err(err)) => errors.push(err),
+                None => unreachable!("We checked no Promise is pending."),
             }
         }
 
-        Poll::Ready(Err(errors))
+        Ready(Err(errors))
     }
 }
 
