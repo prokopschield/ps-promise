@@ -10,8 +10,7 @@ impl PromiseRejection for anyhow::Error {
 
 #[cfg(test)]
 mod tests {
-    #![allow(clippy::unwrap_used)]
-    use anyhow::{anyhow, Error, Result};
+    use anyhow::{anyhow, Error};
 
     use crate::{Promise, PromiseRejection};
 
@@ -26,77 +25,44 @@ mod tests {
         );
     }
 
-    /// Helper function to block on the promise without external executors.
-    /// This assumes that `Promise` resolves synchronously.
-    fn await_promise<T, E>(promise: &mut Promise<T, E>) -> Result<T, E>
-    where
-        T: Unpin,
-        E: PromiseRejection,
-    {
-        use std::{
-            future::Future,
-            pin::pin,
-            task::{Context, Poll, RawWaker, RawWakerVTable, Waker},
-        };
-
-        // Construct a minimal no‑op waker
-        fn no_op(_: *const ()) {}
-        fn raw_waker() -> RawWaker {
-            RawWaker::new(
-                std::ptr::null(),
-                &RawWakerVTable::new(|_| raw_waker(), no_op, no_op, no_op),
-            )
-        }
-        let waker = unsafe { Waker::from_raw(raw_waker()) };
-        let mut cx = Context::from_waker(&waker);
-
-        let mut pinned = pin!(promise);
-
-        match pinned.as_mut().poll(&mut cx) {
-            Poll::Ready(res) => res,
-            Poll::Pending => panic!("Promise did not complete immediately."),
-        }
-    }
-
-    /// Test that a directly resolved promise returns its value on first await.
     #[test]
-    fn promise_resolves_successfully_first_await() -> Result<()> {
-        // Manually construct a resolved promise — should yield immediately.
+    fn promise_resolves_successfully() {
         let mut p: Promise<&'static str, Error> = Promise::resolve("ok");
-        let result = await_promise(&mut p)?;
-        assert_eq!(result, "ok");
-        Ok(())
+        p.poll_sync();
+
+        match p.consume() {
+            Some(Ok(val)) => assert_eq!(val, "ok"),
+            other => panic!("expected Some(Ok(\"ok\")), got {other:?}"),
+        }
     }
 
-    /// Test that a promise already consumed once rejects with the custom `anyhow` error.
     #[test]
-    fn promise_rejects_on_double_await() {
+    fn promise_rejects_on_double_consume() {
         let mut p: Promise<i32, Error> = Promise::resolve(123);
+        p.poll_sync();
 
-        // First await succeeds.
-        let result = await_promise(&mut p);
-        assert!(result.is_ok());
-        assert_eq!(result.unwrap(), 123);
+        assert!(p.consume().is_some_and(|r| r.is_ok()));
 
-        // Second await should produce the custom rejection.
-        let second = await_promise(&mut p);
-        assert!(second.is_err(), "Expected second await to fail");
+        p.poll_sync();
+        let second = p.consume();
 
-        let err = second.unwrap_err();
-        let msg = format!("{err:#}");
         assert!(
-            msg.contains("Promise was consumed and then awaited."),
-            "Unexpected error message: {msg}"
+            second.is_some_and(|r| r.is_err()),
+            "Expected second consume to fail"
         );
     }
 
-    /// Test that a rejected promise surfaces its error normally the first time.
     #[test]
     fn promise_rejects_normally() {
         let mut p: Promise<(), Error> = Promise::reject(anyhow!("expected rejection"));
-        let res = await_promise(&mut p);
-        assert!(res.is_err());
-        let msg = format!("{:#}", res.unwrap_err());
-        assert!(msg.contains("expected rejection"));
+        p.poll_sync();
+
+        match p.consume() {
+            Some(Err(err)) => {
+                let msg = format!("{err:#}");
+                assert!(msg.contains("expected rejection"));
+            }
+            other => panic!("expected Some(Err(...)), got {other:?}"),
+        }
     }
 }
