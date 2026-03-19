@@ -1,7 +1,4 @@
-use std::{
-    ptr::null,
-    task::{Context, RawWaker, RawWakerVTable, Waker},
-};
+use std::task::{Context, Waker};
 
 use crate::{Promise, PromiseRejection};
 
@@ -17,29 +14,11 @@ where
     /// Wakes triggered during this synchronous poll are ignored.
     /// Execution will effectively resume only when the [`Promise`] is polled again by a real executor.
     pub fn poll_sync(&mut self) {
-        let waker = waker();
-        let mut cx = Context::from_waker(&waker);
+        let waker = Waker::noop();
+        let mut cx = Context::from_waker(waker);
 
         self.poll(&mut cx);
     }
-}
-
-fn waker() -> Waker {
-    unsafe { Waker::from_raw(raw_waker()) }
-}
-
-fn raw_waker() -> RawWaker {
-    const unsafe fn wake(_: *const ()) {}
-    const unsafe fn wake_by_ref(_: *const ()) {}
-    const unsafe fn drop(_: *const ()) {}
-
-    unsafe fn clone(_: *const ()) -> RawWaker {
-        raw_waker()
-    }
-
-    static VTABLE: RawWakerVTable = RawWakerVTable::new(clone, wake, wake_by_ref, drop);
-
-    RawWaker::new(null(), &VTABLE)
 }
 
 #[cfg(test)]
