@@ -9,7 +9,7 @@ where
 {
     pub fn new<F>(future: F) -> Self
     where
-        F: Future<Output = Result<T, E>> + Send + Sync + 'static,
+        F: Future<Output = Result<T, E>> + Send + 'static,
     {
         Self::Pending(Box::pin(future))
     }

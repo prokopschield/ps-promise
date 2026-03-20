@@ -7,7 +7,7 @@ use crate::{Promise, PromiseRejection};
 
 impl<T, E> Promise<T, E>
 where
-    T: Send + Unpin + Sync + 'static,
+    T: Send + Unpin + 'static,
     E: PromiseRejection,
 {
     pub fn any<I>(promises: I) -> Promise<T, Vec<E>>
@@ -20,7 +20,7 @@ where
 
 impl<T, E> Future for PromiseAny<T, E>
 where
-    T: Send + Unpin + Sync + 'static,
+    T: Send + Unpin + 'static,
     E: PromiseRejection,
 {
     type Output = Result<T, Vec<E>>;
@@ -59,7 +59,7 @@ where
 
 pub struct PromiseAny<T, E>
 where
-    T: Send + Unpin + Sync + 'static,
+    T: Send + Unpin + 'static,
     E: PromiseRejection,
 {
     promises: Vec<Promise<T, E>>,
@@ -67,7 +67,7 @@ where
 
 impl<I, T, E> From<I> for PromiseAny<T, E>
 where
-    T: Send + Unpin + Sync + 'static,
+    T: Send + Unpin + 'static,
     E: PromiseRejection,
     I: IntoIterator<Item = Promise<T, E>>,
 {
