@@ -103,6 +103,8 @@ mod tests {
     enum E {
         #[error("Promise already consumed.")]
         AlreadyConsumed,
+        #[error("The underlying task failed.")]
+        TaskFailed,
         #[error("Code: {0}")]
         Code(i32),
     }
@@ -110,6 +112,10 @@ mod tests {
     impl PromiseRejection for E {
         fn already_consumed() -> Self {
             Self::AlreadyConsumed
+        }
+
+        fn task_failed() -> Self {
+            Self::TaskFailed
         }
     }
 

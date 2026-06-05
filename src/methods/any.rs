@@ -96,6 +96,10 @@ mod tests {
         fn already_consumed() -> Self {
             Self::AlreadyConsumed
         }
+
+        fn task_failed() -> Self {
+            Self::AlreadyConsumed
+        }
     }
 
     fn cx() -> Context<'static> {

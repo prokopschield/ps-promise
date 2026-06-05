@@ -24,8 +24,11 @@ pub trait PromiseRejection
 where
     Self: Send + Unpin + 'static,
 {
-    /// This method should return the error variant representing this [`Promise`] being consumed more than once.
+    /// Returns the error variant representing this [`Promise`] being consumed more than once.
     fn already_consumed() -> Self;
+
+    /// Returns the error variant representing the underlying task failing, e.g. by panicking or being cancelled by the runtime.
+    fn task_failed() -> Self;
 }
 
 #[derive(Clone, Debug, Error, Hash, PartialEq, Eq, PartialOrd, Ord)]
@@ -35,6 +38,8 @@ where
 {
     #[error("This Promise was consumed already.")]
     AlreadyConsumed,
+    #[error("The underlying task failed.")]
+    TaskFailed,
     #[error(transparent)]
     Rejected(#[from] E),
 }
@@ -46,6 +51,10 @@ where
     fn already_consumed() -> Self {
         Self::AlreadyConsumed
     }
+
+    fn task_failed() -> Self {
+        Self::TaskFailed
+    }
 }
 
 impl<E> PromiseRejection for Vec<E>
@@ -55,8 +64,14 @@ where
     fn already_consumed() -> Self {
         Self::default()
     }
+
+    fn task_failed() -> Self {
+        Self::default()
+    }
 }
 
 impl PromiseRejection for () {
     fn already_consumed() -> Self {}
+
+    fn task_failed() -> Self {}
 }

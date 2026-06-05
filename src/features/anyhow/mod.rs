@@ -6,6 +6,10 @@ impl PromiseRejection for anyhow::Error {
     fn already_consumed() -> Self {
         anyhow!("Promise was consumed and then awaited.")
     }
+
+    fn task_failed() -> Self {
+        anyhow!("The underlying task failed.")
+    }
 }
 
 #[cfg(test)]
