@@ -2,15 +2,17 @@ mod implementations;
 
 use thiserror::Error;
 
-#[derive(Clone, Debug, Error, Hash, PartialEq, Eq, PartialOrd, Ord)]
+use crate::TaskFailure;
+
+#[derive(Debug, Error)]
 pub enum WrappedPromiseRejection<E>
 where
     E: Send + Unpin + 'static,
 {
     #[error("This Promise was consumed already.")]
     AlreadyConsumed,
-    #[error("The underlying task failed.")]
-    TaskFailed,
+    #[error("The underlying task failed: {0}")]
+    TaskFailed(TaskFailure),
     #[error(transparent)]
     Rejected(#[from] E),
 }

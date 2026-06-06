@@ -8,7 +8,7 @@ where
         Self::AlreadyConsumed
     }
 
-    fn task_failed(_: TaskFailure) -> Self {
-        Self::TaskFailed
+    fn task_failed(failure: TaskFailure) -> Self {
+        Self::TaskFailed(failure)
     }
 }
