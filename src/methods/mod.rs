@@ -2,6 +2,7 @@ mod all;
 mod any;
 mod catch;
 mod consume;
+mod eager_with;
 mod is_consumed;
 mod is_pending;
 mod is_ready;
