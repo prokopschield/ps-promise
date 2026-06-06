@@ -1,7 +1,9 @@
+mod task_failure;
 mod unit;
 mod vec;
 mod wrapped;
 
+pub use task_failure::TaskFailure;
 pub use wrapped::WrappedPromiseRejection;
 
 pub trait PromiseRejection
