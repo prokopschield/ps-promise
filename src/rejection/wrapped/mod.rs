@@ -1,11 +1,13 @@
 mod implementations;
 
+use std::convert::Infallible;
+
 use thiserror::Error;
 
 use crate::TaskFailure;
 
 #[derive(Debug, Error)]
-pub enum WrappedPromiseRejection<E>
+pub enum WrappedPromiseRejection<E = Infallible>
 where
     E: Send + Unpin + 'static,
 {
