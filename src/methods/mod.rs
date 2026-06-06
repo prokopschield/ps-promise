@@ -7,6 +7,7 @@ mod is_pending;
 mod is_ready;
 mod is_rejected;
 mod is_resolved;
+mod lazy;
 mod map;
 mod map_err;
 mod new;
