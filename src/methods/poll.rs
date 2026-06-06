@@ -1,6 +1,9 @@
-use std::task::{Context, Poll};
+use std::{
+    panic::{catch_unwind, AssertUnwindSafe},
+    task::{Context, Poll},
+};
 
-use crate::{Promise, PromiseRejection};
+use crate::{Promise, PromiseRejection, TaskFailure};
 
 impl<T, E> Promise<T, E>
 where
@@ -15,7 +18,15 @@ where
             return;
         };
 
-        match future.as_mut().poll(cx) {
+        let mut future = AssertUnwindSafe(future);
+        let mut cx = AssertUnwindSafe(cx);
+
+        let poll = match catch_unwind(move || future.as_mut().poll(&mut cx)) {
+            Ok(poll) => poll,
+            Err(panic) => return *self = Self::Rejected(E::task_failed(TaskFailure::Panic(panic))),
+        };
+
+        match poll {
             Poll::Ready(Ok(value)) => *self = Self::Resolved(value),
             Poll::Ready(Err(err)) => *self = Self::Rejected(err),
             Poll::Pending => {}
