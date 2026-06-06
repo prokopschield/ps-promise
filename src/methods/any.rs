@@ -82,12 +82,14 @@ where
 mod tests {
     use std::task::{Context, Waker};
 
-    use crate::{Promise, PromiseRejection};
+    use crate::{Promise, PromiseRejection, TaskFailure};
 
     #[derive(thiserror::Error, Debug, Clone, Copy, Hash, PartialEq, Eq, PartialOrd, Ord)]
     enum E {
         #[error("Promise already consumed.")]
         AlreadyConsumed,
+        #[error("Task failed")]
+        Failure,
         #[error("Code: {0}")]
         Code(i32),
     }
@@ -97,8 +99,8 @@ mod tests {
             Self::AlreadyConsumed
         }
 
-        fn task_failed() -> Self {
-            Self::AlreadyConsumed
+        fn task_failed(_: TaskFailure) -> Self {
+            Self::Failure
         }
     }
 

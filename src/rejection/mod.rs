@@ -14,5 +14,5 @@ where
     fn already_consumed() -> Self;
 
     /// Returns the error variant representing the underlying task failing, e.g. by panicking or being cancelled by the runtime.
-    fn task_failed() -> Self;
+    fn task_failed(failure: TaskFailure) -> Self;
 }

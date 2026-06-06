@@ -1,4 +1,4 @@
-use crate::{PromiseRejection, WrappedPromiseRejection};
+use crate::{PromiseRejection, TaskFailure, WrappedPromiseRejection};
 
 impl<E> PromiseRejection for WrappedPromiseRejection<E>
 where
@@ -8,7 +8,7 @@ where
         Self::AlreadyConsumed
     }
 
-    fn task_failed() -> Self {
+    fn task_failed(_: TaskFailure) -> Self {
         Self::TaskFailed
     }
 }

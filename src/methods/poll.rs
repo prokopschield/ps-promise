@@ -35,7 +35,7 @@ mod tests {
         task::{Context, Poll, Waker},
     };
 
-    use crate::{Promise, PromiseRejection};
+    use crate::{Promise, PromiseRejection, TaskFailure};
 
     #[derive(Debug, Clone, PartialEq, Eq)]
     enum E {
@@ -48,7 +48,7 @@ mod tests {
             Self::AlreadyConsumed
         }
 
-        fn task_failed() -> Self {
+        fn task_failed(_: TaskFailure) -> Self {
             Self::Fail
         }
     }

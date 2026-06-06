@@ -1,4 +1,4 @@
-use crate::PromiseRejection;
+use crate::{PromiseRejection, TaskFailure};
 
 impl<E> PromiseRejection for Vec<E>
 where
@@ -8,7 +8,7 @@ where
         vec![E::already_consumed()]
     }
 
-    fn task_failed() -> Self {
-        vec![E::task_failed()]
+    fn task_failed(failure: TaskFailure) -> Self {
+        vec![E::task_failed(failure)]
     }
 }

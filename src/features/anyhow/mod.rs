@@ -1,14 +1,24 @@
 use anyhow::anyhow;
 
-use crate::PromiseRejection;
+use crate::{PromiseRejection, TaskFailure};
 
 impl PromiseRejection for anyhow::Error {
     fn already_consumed() -> Self {
         anyhow!("Promise was consumed and then awaited.")
     }
 
-    fn task_failed() -> Self {
-        anyhow!("The underlying task failed.")
+    fn task_failed(failure: TaskFailure) -> Self {
+        use std::fmt::Write;
+
+        let mut msg = format!("{failure}");
+        let mut src = std::error::Error::source(&failure);
+
+        while let Some(s) = src {
+            let _ = write!(msg, "\nCaused by: {s}");
+            src = s.source();
+        }
+
+        Self::msg(msg)
     }
 }
 

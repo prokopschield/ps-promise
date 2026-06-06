@@ -97,7 +97,7 @@ where
 mod tests {
     use std::task::{Context, Waker};
 
-    use crate::{Promise, PromiseRejection};
+    use crate::{Promise, PromiseRejection, TaskFailure};
 
     #[derive(thiserror::Error, Debug, Clone, Copy, Hash, PartialEq, Eq, PartialOrd, Ord)]
     enum E {
@@ -114,7 +114,7 @@ mod tests {
             Self::AlreadyConsumed
         }
 
-        fn task_failed() -> Self {
+        fn task_failed(_: TaskFailure) -> Self {
             Self::TaskFailed
         }
     }
