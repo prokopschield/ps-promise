@@ -5,10 +5,10 @@ where
     E: PromiseRejection,
 {
     fn already_consumed() -> Self {
-        Self::default()
+        vec![E::already_consumed()]
     }
 
     fn task_failed() -> Self {
-        Self::default()
+        vec![E::task_failed()]
     }
 }
