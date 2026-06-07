@@ -4,6 +4,7 @@ mod catch;
 mod consume;
 #[cfg(any(feature = "smol", feature = "tokio"))]
 mod eager;
+mod eager_or_lazy;
 mod eager_with;
 #[cfg(feature = "smol")]
 mod eager_with_smol;
