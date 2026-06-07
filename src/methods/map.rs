@@ -9,11 +9,11 @@ where
 {
     pub fn map<TO, F, Fut>(self, f: F) -> Promise<TO, E>
     where
-        TO: Unpin + 'static,
+        TO: Send + Unpin + 'static,
         F: FnOnce(T) -> Fut + Send + 'static,
         Fut: Future<Output = TO> + Send + 'static,
     {
-        Promise::new(async move {
+        Promise::eager_or_lazy(async move {
             match self.await {
                 Ok(value) => Ok(f(value).await),
                 Err(err) => Err(err),

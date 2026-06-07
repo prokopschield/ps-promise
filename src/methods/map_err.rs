@@ -9,11 +9,11 @@ where
 {
     pub fn map_err<EO, F, Fut>(self, f: F) -> Promise<T, EO>
     where
-        EO: PromiseRejection + 'static,
+        EO: PromiseRejection,
         F: FnOnce(E) -> Fut + Send + 'static,
         Fut: Future<Output = EO> + Send + 'static,
     {
-        Promise::new(async move {
+        Promise::eager_or_lazy(async move {
             match self.await {
                 Ok(value) => Ok(value),
                 Err(err) => Err(f(err).await),

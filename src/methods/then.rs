@@ -9,12 +9,12 @@ where
 {
     pub fn then<TO, EO, F, Fut>(self, f: F) -> Promise<TO, EO>
     where
-        TO: Unpin + 'static,
-        EO: PromiseRejection + From<E> + 'static,
+        TO: Send + Unpin + 'static,
+        EO: PromiseRejection + From<E>,
         F: FnOnce(T) -> Fut + Send + 'static,
         Fut: Future<Output = Result<TO, EO>> + Send + 'static,
     {
-        Promise::new(async move {
+        Promise::eager_or_lazy(async move {
             match self.await {
                 Ok(value) => f(value).await,
                 Err(err) => Err(err.into()),
