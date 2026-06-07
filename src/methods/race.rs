@@ -11,7 +11,7 @@ where
     where
         I: IntoIterator<Item = Self>,
     {
-        Self::new(PromiseRace::from(promises))
+        Self::lazy(PromiseRace::from(promises))
     }
 }
 
