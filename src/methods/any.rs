@@ -124,9 +124,9 @@ mod tests {
     #[test]
     fn resolving() {
         let mut all = Promise::any([
-            Promise::new(async { Err(E::Code(1)) }),
-            Promise::new(async { Ok(2) }),
-            Promise::new(async { Err(E::Code(3)) }),
+            Promise::lazy(async { Err(E::Code(1)) }),
+            Promise::lazy(async { Ok(2) }),
+            Promise::lazy(async { Err(E::Code(3)) }),
         ]);
 
         all.ready(&mut cx());
@@ -141,9 +141,9 @@ mod tests {
     #[test]
     fn rejecting() {
         let mut all: Promise<(), Vec<E>> = Promise::any([
-            Promise::new(async { Err(E::Code(1)) }),
-            Promise::new(async { Err(E::Code(2)) }),
-            Promise::new(async { Err(E::Code(3)) }),
+            Promise::lazy(async { Err(E::Code(1)) }),
+            Promise::lazy(async { Err(E::Code(2)) }),
+            Promise::lazy(async { Err(E::Code(3)) }),
         ]);
 
         all.ready(&mut cx());

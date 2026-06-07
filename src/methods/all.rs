@@ -137,9 +137,9 @@ mod tests {
     #[test]
     fn all_resolve() {
         let mut all = Promise::all([
-            Promise::new(async { Ok::<_, E>(1) }),
-            Promise::new(async { Ok(2) }),
-            Promise::new(async { Ok(3) }),
+            Promise::lazy(async { Ok::<_, E>(1) }),
+            Promise::lazy(async { Ok(2) }),
+            Promise::lazy(async { Ok(3) }),
         ]);
 
         all.ready(&mut cx());
@@ -153,9 +153,9 @@ mod tests {
     #[test]
     fn single_rejection() {
         let mut all: Promise<Vec<i32>, E> = Promise::all([
-            Promise::new(async { Ok(1) }),
-            Promise::new(async { Err(E::Code(2)) }),
-            Promise::new(async { Ok(3) }),
+            Promise::lazy(async { Ok(1) }),
+            Promise::lazy(async { Err(E::Code(2)) }),
+            Promise::lazy(async { Ok(3) }),
         ]);
 
         all.ready(&mut cx());
@@ -169,10 +169,10 @@ mod tests {
     #[test]
     fn returns_first_error() {
         let mut all: Promise<Vec<i32>, E> = Promise::all([
-            Promise::new(async { Err(E::Code(1)) }),
-            Promise::new(async { Ok(99) }),
-            Promise::new(async { Err(E::Code(2)) }),
-            Promise::new(async { Err(E::Code(3)) }),
+            Promise::lazy(async { Err(E::Code(1)) }),
+            Promise::lazy(async { Ok(99) }),
+            Promise::lazy(async { Err(E::Code(2)) }),
+            Promise::lazy(async { Err(E::Code(3)) }),
         ]);
 
         all.ready(&mut cx());
@@ -184,7 +184,7 @@ mod tests {
 
     #[test]
     fn repoll_after_success_yields_already_consumed() {
-        let mut all: Promise<Vec<i32>, E> = Promise::all([Promise::new(async { Ok(1) })]);
+        let mut all: Promise<Vec<i32>, E> = Promise::all([Promise::lazy(async { Ok(1) })]);
 
         all.ready(&mut cx());
         assert_eq!(all.consume(), Some(Ok(vec![1])));
@@ -196,8 +196,8 @@ mod tests {
     #[test]
     fn all_rejected() {
         let mut all: Promise<Vec<i32>, E> = Promise::all([
-            Promise::new(async { Err(E::Code(10)) }),
-            Promise::new(async { Err(E::Code(20)) }),
+            Promise::lazy(async { Err(E::Code(10)) }),
+            Promise::lazy(async { Err(E::Code(20)) }),
         ]);
 
         all.ready(&mut cx());

@@ -70,7 +70,7 @@ mod tests {
 
     #[test]
     fn resolves_ready_future() {
-        let mut promise: Promise<i32, E> = Promise::new(async { Ok(42) });
+        let mut promise: Promise<i32, E> = Promise::lazy(async { Ok(42) });
         promise.poll(&mut cx());
         match promise {
             Promise::Resolved(v) => assert_eq!(v, 42),
@@ -80,7 +80,7 @@ mod tests {
 
     #[test]
     fn rejects_ready_future() {
-        let mut promise: Promise<(), E> = Promise::new(async { Err(E::Fail) });
+        let mut promise: Promise<(), E> = Promise::lazy(async { Err(E::Fail) });
         promise.poll(&mut cx());
         match promise {
             Promise::Rejected(E::Fail) => {}
@@ -99,7 +99,7 @@ mod tests {
             }
         }
 
-        let mut promise: Promise<(), E> = Promise::new(Never);
+        let mut promise: Promise<(), E> = Promise::lazy(Never);
         promise.poll(&mut cx());
         assert!(promise.is_pending());
     }
@@ -150,7 +150,7 @@ mod tests {
 
         let ready = Arc::new(AtomicBool::new(false));
 
-        let mut promise: Promise<i32, E> = Promise::new(Delayed {
+        let mut promise: Promise<i32, E> = Promise::lazy(Delayed {
             ready: ready.clone(),
         });
 
@@ -185,7 +185,7 @@ mod tests {
 
         let ready = Arc::new(AtomicBool::new(false));
 
-        let mut promise: Promise<(), E> = Promise::new(Delayed {
+        let mut promise: Promise<(), E> = Promise::lazy(Delayed {
             ready: ready.clone(),
         });
 
@@ -220,7 +220,7 @@ mod tests {
 
         let woken = Arc::new(AtomicBool::new(false));
 
-        let mut promise: Promise<(), E> = Promise::new(StoreWaker {
+        let mut promise: Promise<(), E> = Promise::lazy(StoreWaker {
             woken: woken.clone(),
         });
         promise.poll(&mut cx());
@@ -247,7 +247,7 @@ mod tests {
 
         let count = Arc::new(AtomicUsize::new(0));
 
-        let mut promise: Promise<(), E> = Promise::new(Counter {
+        let mut promise: Promise<(), E> = Promise::lazy(Counter {
             count: count.clone(),
         });
         promise.poll(&mut cx());

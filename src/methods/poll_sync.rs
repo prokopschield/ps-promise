@@ -33,7 +33,7 @@ mod tests {
 
     #[test]
     fn eager_resolves_immediately_ready_future() {
-        let mut promise = Promise::new(async { Ok::<_, ()>(42) });
+        let mut promise = Promise::lazy(async { Ok::<_, ()>(42) });
         promise.poll_sync();
 
         match promise {
@@ -44,7 +44,7 @@ mod tests {
 
     #[test]
     fn eager_rejects_immediately_ready_future() {
-        let mut promise: Promise<(), ()> = Promise::new(async { Err(()) });
+        let mut promise: Promise<(), ()> = Promise::lazy(async { Err(()) });
         promise.poll_sync();
 
         match promise {
@@ -65,7 +65,7 @@ mod tests {
             }
         }
 
-        let mut promise = Promise::new(Never);
+        let mut promise = Promise::lazy(Never);
         promise.poll_sync();
 
         assert!(promise.is_pending());
@@ -89,7 +89,7 @@ mod tests {
             }
         }
 
-        let mut promise = Promise::new(CloneWaker { stored: None });
+        let mut promise = Promise::lazy(CloneWaker { stored: None });
         promise.poll_sync();
 
         assert!(promise.is_pending());
