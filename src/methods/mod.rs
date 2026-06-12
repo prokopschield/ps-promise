@@ -12,6 +12,8 @@ mod eager_with_smol;
 #[cfg(feature = "tokio")]
 mod eager_with_tokio;
 mod finally;
+mod inspect;
+mod inspect_err;
 mod is_consumed;
 mod is_pending;
 mod is_ready;
