@@ -32,6 +32,7 @@ mod ready;
 mod ready_sync;
 mod reject;
 mod resolve;
+mod sleep;
 mod then;
 mod unblock;
 mod with_resolvers;
