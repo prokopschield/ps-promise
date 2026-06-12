@@ -32,4 +32,7 @@ mod reject;
 mod resolve;
 mod then;
 mod unblock;
+mod with_resolvers;
 mod wrap;
+
+pub use with_resolvers::{Reject, Resolve, ResolversDropped};
