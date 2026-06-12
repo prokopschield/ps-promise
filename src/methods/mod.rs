@@ -10,6 +10,7 @@ mod eager_with;
 mod eager_with_smol;
 #[cfg(feature = "tokio")]
 mod eager_with_tokio;
+mod finally;
 mod is_consumed;
 mod is_pending;
 mod is_ready;
