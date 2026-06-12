@@ -38,6 +38,7 @@ mod timeout;
 mod unblock;
 mod with_resolvers;
 mod wrap;
+mod zip;
 
 pub use timeout::TimeoutError;
 pub use with_resolvers::{Reject, Resolve, ResolversDropped};
