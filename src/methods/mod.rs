@@ -1,4 +1,5 @@
 mod all;
+mod all_settled;
 mod any;
 mod catch;
 mod consume;
