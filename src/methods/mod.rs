@@ -34,8 +34,10 @@ mod reject;
 mod resolve;
 mod sleep;
 mod then;
+mod timeout;
 mod unblock;
 mod with_resolvers;
 mod wrap;
 
+pub use timeout::TimeoutError;
 pub use with_resolvers::{Reject, Resolve, ResolversDropped};
