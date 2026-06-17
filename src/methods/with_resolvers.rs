@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use async_channel::{Receiver, Sender};
 
 use crate::{Promise, PromiseRejection, TaskFailure};
@@ -27,7 +29,7 @@ where
 
         let promise = Self::lazy(async move {
             receiver.recv().await.unwrap_or_else(|_| {
-                Err(E::task_failed(TaskFailure::Error(Box::new(
+                Err(E::task_failed(TaskFailure::Error(Arc::new(
                     ResolversDropped,
                 ))))
             })

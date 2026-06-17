@@ -1,4 +1,4 @@
-use std::time::Duration;
+use std::{sync::Arc, time::Duration};
 
 use crate::{Promise, PromiseRejection, TaskFailure};
 
@@ -26,7 +26,7 @@ where
             Self::lazy(async move {
                 deadline.await?;
 
-                Err(E::task_failed(TaskFailure::Error(Box::new(TimeoutError))))
+                Err(E::task_failed(TaskFailure::Error(Arc::new(TimeoutError))))
             }),
         ])
     }

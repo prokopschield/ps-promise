@@ -8,7 +8,7 @@ use thiserror::Error;
 #[derive(Error)]
 pub enum TaskFailure {
     #[error(transparent)]
-    Error(Box<dyn Error + Send + 'static>),
+    Error(Arc<dyn Error + Send + Sync + 'static>),
 
     #[error("task panicked: {0}")]
     Panic(Arc<str>),

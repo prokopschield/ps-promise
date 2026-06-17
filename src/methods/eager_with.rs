@@ -111,7 +111,7 @@ mod tests {
     #[test]
     fn spawner_can_map_to_task_failed() {
         let mut p: Promise<i32, E> = Promise::eager_with(async { Ok(99) }, |_p| async {
-            Err(E::task_failed(TaskFailure::Error(Box::new(
+            Err(E::task_failed(TaskFailure::Error(Arc::new(
                 std::io::Error::other("cancelled"),
             ))))
         });
