@@ -23,7 +23,7 @@ where
 
         let poll = match catch_unwind(move || future.as_mut().poll(&mut cx)) {
             Ok(poll) => poll,
-            Err(panic) => return *self = Self::Rejected(E::task_failed(TaskFailure::Panic(panic))),
+            Err(panic) => return *self = Self::Rejected(E::task_failed(TaskFailure::from(panic))),
         };
 
         match poll {
