@@ -20,7 +20,7 @@ where
     /// Mirrors ECMAScript's `Promise.withResolvers`: the promise stays
     /// pending until [`Resolve::resolve`] or [`Reject::reject`] is called,
     /// and the first settlement wins. If both handles are dropped without
-    /// settling, the promise rejects with [`ResolversDropped`] boxed inside
+    /// settling, the promise rejects with [`ResolversDropped`] wrapped in
     /// [`TaskFailure::Error`], mapped through
     /// [`PromiseRejection::task_failed`].
     #[must_use = "Dropping the handles rejects the Promise!"]

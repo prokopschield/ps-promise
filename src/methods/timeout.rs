@@ -16,7 +16,7 @@ where
     ///
     /// The deadline timer is provided by [`Promise::sleep`] and follows its
     /// runtime dispatch. On expiry the promise rejects with [`TimeoutError`]
-    /// boxed inside [`TaskFailure::Error`], mapped through
+    /// wrapped in [`TaskFailure::Error`], mapped through
     /// [`PromiseRejection::task_failed`].
     pub fn timeout(self, duration: Duration) -> Self {
         let deadline = Promise::<(), E>::sleep(duration);
