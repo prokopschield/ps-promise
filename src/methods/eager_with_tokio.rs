@@ -33,18 +33,15 @@ where
 /// Flattens the outcome of awaiting a [`tokio::task::JoinHandle`] returning
 /// `Result<T, E>` into a single `Result<T, E>`.
 ///
-/// `Ok(inner)` is returned as-is. Any [`JoinError`] (cancellation, abort,
-/// runtime shutdown) is boxed and mapped to [`TaskFailure::Error`]; panic
-/// `JoinErrors` are unreachable in practice because [`Promise::poll`]'s
-/// `catch_unwind` intercepts inner panics before [`tokio::task::JoinHandle`]
-/// observes them.
+/// `Ok(inner)` is returned as-is; a [`JoinError`] is surfaced as a rejection
+/// through [`PromiseRejection::task_failed`].
 fn map_join_result<T, E>(result: Result<Result<T, E>, JoinError>) -> Result<T, E>
 where
     E: PromiseRejection,
 {
     match result {
         Ok(result) => result,
-        Err(join_err) => Err(E::task_failed(TaskFailure::Error(Box::new(join_err)))),
+        Err(join_err) => Err(E::task_failed(TaskFailure::from(join_err))),
     }
 }
 

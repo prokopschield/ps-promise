@@ -34,12 +34,7 @@ where
             return Self::lazy(async move {
                 match handle.await {
                     Ok(inner) => inner,
-                    Err(join_err) => match join_err.try_into_panic() {
-                        Ok(payload) => Err(E::task_failed(crate::TaskFailure::from(payload))),
-                        Err(join_err) => Err(E::task_failed(crate::TaskFailure::Error(Box::new(
-                            join_err,
-                        )))),
-                    },
+                    Err(join_err) => Err(E::task_failed(crate::TaskFailure::from(join_err))),
                 }
             });
         }
