@@ -33,6 +33,7 @@ mod ready;
 mod ready_sync;
 mod reject;
 mod resolve;
+mod shared;
 mod sleep;
 mod then;
 mod timeout;
@@ -41,5 +42,6 @@ mod with_resolvers;
 mod wrap;
 mod zip;
 
+pub use shared::SharedPromise;
 pub use timeout::TimeoutError;
 pub use with_resolvers::{Reject, Resolve, ResolversDropped};
