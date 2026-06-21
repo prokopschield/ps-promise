@@ -5,6 +5,8 @@ mod any;
 mod catch;
 mod consume;
 #[cfg(any(feature = "smol", feature = "tokio"))]
+mod detach;
+#[cfg(any(feature = "smol", feature = "tokio"))]
 mod eager;
 mod eager_or_lazy;
 mod eager_with;
