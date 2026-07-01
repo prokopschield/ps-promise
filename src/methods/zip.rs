@@ -14,8 +14,10 @@ where
     /// type, resolving with both values as a tuple.
     ///
     /// Both promises are polled concurrently. Like [`Promise::all`], the
-    /// result settles once both children have settled; if either rejects,
-    /// the zipped promise rejects with the left rejection taking precedence.
+    /// promise resolves once both children have resolved; if either rejects,
+    /// the zipped promise rejects immediately, without waiting for the other
+    /// child. When both reject in the same poll, the left rejection takes
+    /// precedence.
     ///
     /// Chain calls for higher arity: `a.zip(b).zip(c)` resolves with
     /// `((A, B), C)`.
@@ -56,6 +58,20 @@ where
 
         let left_pending = this.left.pending(cx);
         let right_pending = this.right.pending(cx);
+
+        if this.left.is_rejected() {
+            match this.left.consume() {
+                Some(Err(err)) => return Ready(Err(err)),
+                _ => unreachable!("The promise is rejected."),
+            }
+        }
+
+        if this.right.is_rejected() {
+            match this.right.consume() {
+                Some(Err(err)) => return Ready(Err(err)),
+                _ => unreachable!("The promise is rejected."),
+            }
+        }
 
         if left_pending || right_pending {
             return Pending;
@@ -154,6 +170,18 @@ mod tests {
         zipped.ready(&mut cx());
 
         assert_eq!(zipped.consume(), Some(Ok(((1, "b"), true))));
+    }
+
+    #[test]
+    fn rejection_short_circuits_pending() {
+        let left: Promise<i32, E> = Promise::lazy(std::future::pending());
+        let right: Promise<&str, E> = Promise::lazy(async { Err(E::Code(2)) });
+
+        let mut zipped = left.zip(right);
+
+        zipped.ready(&mut cx());
+
+        assert_eq!(zipped.consume(), Some(Err(E::Code(2))));
     }
 
     #[test]

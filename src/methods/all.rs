@@ -31,30 +31,26 @@ where
     ) -> std::task::Poll<Self::Output> {
         let this = self.get_mut();
 
-        // Phase 1: drive all promises to completion.
+        // Phase 1: drive the promises, short-circuiting on the first rejection.
         let mut is_pending = false;
-        let mut rejection_idx = None;
 
-        for (idx, promise) in this.promises.iter_mut().enumerate() {
+        for promise in &mut this.promises {
             if promise.pending(cx) {
                 is_pending = true;
+
+                continue;
             }
 
-            if rejection_idx.is_none() && promise.is_rejected() {
-                rejection_idx = Some(idx);
+            if promise.is_rejected() {
+                match promise.consume() {
+                    Some(Err(err)) => return Ready(Err(err)),
+                    _ => unreachable!("The promise is rejected."),
+                }
             }
         }
 
         if is_pending {
             return Pending;
-        }
-
-        if let Some(err) = rejection_idx
-            .and_then(|idx| this.promises.get_mut(idx))
-            .and_then(Promise::consume)
-            .and_then(Result::err)
-        {
-            return Ready(Err(err));
         }
 
         // Phase 2: collect values
@@ -191,6 +187,18 @@ mod tests {
 
         all.ready(&mut cx());
         assert_eq!(all.consume(), Some(Err(E::AlreadyConsumed)));
+    }
+
+    #[test]
+    fn rejection_short_circuits_pending() {
+        let mut all: Promise<Vec<i32>, E> = Promise::all([
+            Promise::lazy(std::future::pending()),
+            Promise::lazy(async { Err(E::Code(2)) }),
+        ]);
+
+        all.ready(&mut cx());
+
+        assert_eq!(all.consume(), Some(Err(E::Code(2))));
     }
 
     #[test]

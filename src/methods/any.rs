@@ -33,11 +33,20 @@ where
 
         let mut is_pending = false;
 
-        this.promises.iter_mut().for_each(|promise| {
+        for promise in &mut this.promises {
             if promise.pending(cx) {
                 is_pending = true;
+
+                continue;
             }
-        });
+
+            if promise.is_resolved() {
+                match promise.consume() {
+                    Some(Ok(val)) => return Ready(Ok(val)),
+                    _ => unreachable!("The promise is resolved."),
+                }
+            }
+        }
 
         if is_pending {
             return Pending;
@@ -47,8 +56,8 @@ where
 
         for promise in &mut this.promises {
             match promise.consume() {
-                Some(Ok(val)) => return Ready(Ok(val)),
                 Some(Err(err)) => errors.push(err),
+                Some(Ok(_)) => unreachable!("A resolved promise short-circuits above."),
                 None => unreachable!("We checked no Promise is pending."),
             }
         }
@@ -136,6 +145,18 @@ mod tests {
         } else {
             panic!("Expected Resolved(2), got {all:?}");
         }
+    }
+
+    #[test]
+    fn resolution_short_circuits_pending() {
+        let mut any: Promise<i32, Vec<E>> = Promise::any([
+            Promise::lazy(std::future::pending()),
+            Promise::lazy(async { Ok(2) }),
+        ]);
+
+        any.ready(&mut cx());
+
+        assert_eq!(any.consume(), Some(Ok(2)));
     }
 
     #[test]
