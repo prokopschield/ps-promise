@@ -25,7 +25,6 @@ mod is_resolved;
 mod lazy;
 mod map;
 mod map_err;
-mod new;
 mod peek;
 mod pending;
 mod pending_sync;
