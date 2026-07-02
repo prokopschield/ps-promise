@@ -1,4 +1,4 @@
-use std::sync::Arc;
+use std::{fmt::Debug, sync::Arc};
 
 use async_channel::{Receiver, Sender};
 
@@ -62,6 +62,12 @@ impl<T, E> Clone for Resolve<T, E> {
     }
 }
 
+impl<T, E> Debug for Resolve<T, E> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Resolve").finish_non_exhaustive()
+    }
+}
+
 impl<T, E> Resolve<T, E> {
     /// Settles the associated [`Promise`] with `value`.
     ///
@@ -84,6 +90,12 @@ impl<T, E> Clone for Reject<T, E> {
         Self {
             sender: self.sender.clone(),
         }
+    }
+}
+
+impl<T, E> Debug for Reject<T, E> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Reject").finish_non_exhaustive()
     }
 }
 
@@ -250,5 +262,13 @@ mod tests {
         promise.ready(&mut cx());
 
         assert_eq!(promise.consume(), Some(Err(E::TaskFailed)));
+    }
+
+    #[test]
+    fn debug_output_names_the_handles() {
+        let (_promise, resolve, reject) = Promise::<i32, E>::with_resolvers();
+
+        assert_eq!(format!("{resolve:?}"), "Resolve { .. }");
+        assert_eq!(format!("{reject:?}"), "Reject { .. }");
     }
 }
