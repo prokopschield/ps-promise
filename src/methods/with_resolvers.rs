@@ -19,10 +19,11 @@ where
     ///
     /// Mirrors ECMAScript's `Promise.withResolvers`: the promise stays
     /// pending until [`Resolve::resolve`] or [`Reject::reject`] is called,
-    /// and the first settlement wins. If both handles are dropped without
-    /// settling, the promise rejects with [`ResolversDropped`] wrapped in
-    /// [`TaskFailure::Error`], mapped through
-    /// [`PromiseRejection::task_failed`].
+    /// and the first settlement wins. Both handles are clonable, and any
+    /// clone may settle the promise. If every handle, including clones, is
+    /// dropped without settling, the promise rejects with
+    /// [`ResolversDropped`] wrapped in [`TaskFailure::Error`], mapped
+    /// through [`PromiseRejection::task_failed`].
     #[must_use = "Dropping the handles rejects the Promise!"]
     pub fn with_resolvers() -> (Self, Resolve<T, E>, Reject<T, E>) {
         let (sender, receiver): (_, Receiver<Result<T, E>>) = async_channel::bounded(1);
@@ -46,8 +47,19 @@ where
 }
 
 /// Resolves the [`Promise`] created by `Promise::with_resolvers`.
+///
+/// Cloning yields another handle to the same promise; any clone may settle
+/// it, and the first settlement wins.
 pub struct Resolve<T, E> {
     sender: Sender<Result<T, E>>,
+}
+
+impl<T, E> Clone for Resolve<T, E> {
+    fn clone(&self) -> Self {
+        Self {
+            sender: self.sender.clone(),
+        }
+    }
 }
 
 impl<T, E> Resolve<T, E> {
@@ -60,8 +72,19 @@ impl<T, E> Resolve<T, E> {
 }
 
 /// Rejects the [`Promise`] created by `Promise::with_resolvers`.
+///
+/// Cloning yields another handle to the same promise; any clone may settle
+/// it, and the first settlement wins.
 pub struct Reject<T, E> {
     sender: Sender<Result<T, E>>,
+}
+
+impl<T, E> Clone for Reject<T, E> {
+    fn clone(&self) -> Self {
+        Self {
+            sender: self.sender.clone(),
+        }
+    }
 }
 
 impl<T, E> Reject<T, E> {
@@ -163,5 +186,69 @@ mod tests {
         promise.ready(&mut cx());
 
         assert_eq!(promise.consume(), Some(Ok(9)));
+    }
+
+    #[test]
+    fn clone_can_settle_after_originals_are_dropped() {
+        let (mut promise, resolve, reject) = Promise::<i32, E>::with_resolvers();
+
+        let clone = resolve.clone();
+
+        drop(resolve);
+        drop(reject);
+
+        clone.resolve(3);
+        promise.ready(&mut cx());
+
+        assert_eq!(promise.consume(), Some(Ok(3)));
+    }
+
+    #[test]
+    fn first_settlement_wins_across_clones() {
+        let (mut promise, resolve, _reject) = Promise::<i32, E>::with_resolvers();
+
+        let clone = resolve.clone();
+
+        clone.resolve(1);
+        resolve.resolve(2);
+        promise.ready(&mut cx());
+
+        assert_eq!(promise.consume(), Some(Ok(1)));
+    }
+
+    #[test]
+    fn live_clone_keeps_the_promise_pending() {
+        let (mut promise, resolve, reject) = Promise::<i32, E>::with_resolvers();
+
+        let clone = reject.clone();
+
+        drop(resolve);
+        drop(reject);
+
+        assert!(promise.pending(&mut cx()));
+
+        clone.reject(E::Fail);
+        promise.ready(&mut cx());
+
+        assert_eq!(promise.consume(), Some(Err(E::Fail)));
+    }
+
+    #[test]
+    fn rejects_only_when_every_clone_is_dropped() {
+        let (mut promise, resolve, reject) = Promise::<i32, E>::with_resolvers();
+
+        let resolve_clone = resolve.clone();
+        let reject_clone = reject.clone();
+
+        drop(resolve);
+        drop(reject);
+
+        assert!(promise.pending(&mut cx()));
+
+        drop(resolve_clone);
+        drop(reject_clone);
+        promise.ready(&mut cx());
+
+        assert_eq!(promise.consume(), Some(Err(E::TaskFailed)));
     }
 }
