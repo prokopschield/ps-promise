@@ -3,6 +3,7 @@ mod all;
 mod all_settled;
 mod any;
 mod attempt;
+mod attempt_async;
 mod catch;
 mod consume;
 #[cfg(any(feature = "smol", feature = "tokio"))]
