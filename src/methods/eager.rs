@@ -11,13 +11,16 @@ where
     /// or `smol::spawn`.
     ///
     /// Dispatch is selected at compile time based on which runtime features
-    /// are enabled, with a runtime check when both are on:
+    /// are enabled, with a runtime check when `tokio` is on:
     ///
-    /// - Only `tokio` enabled: always dispatches to `Promise::eager_with_tokio`.
+    /// - Only `tokio` enabled: dispatches to `Promise::eager_with_tokio` when
+    ///   called from within a tokio runtime context (detected via
+    ///   `tokio::runtime::Handle::try_current`), otherwise falls back to
+    ///   [`Promise::lazy`], so the future only progresses when the [`Promise`]
+    ///   is polled.
     /// - Only `smol` enabled: always dispatches to `Promise::eager_with_smol`.
     /// - Both enabled: dispatches to `Promise::eager_with_tokio` when called
-    ///   from within a tokio runtime context (detected via
-    ///   `tokio::runtime::Handle::try_current`), otherwise to
+    ///   from within a tokio runtime context, otherwise to
     ///   `Promise::eager_with_smol`.
     ///
     /// Requires at least one of the `tokio` or `smol` features; if neither is
@@ -31,7 +34,11 @@ where
         };
 
         #[cfg(all(feature = "tokio", not(feature = "smol")))]
-        return Self::eager_with_tokio(future);
+        return if tokio::runtime::Handle::try_current().is_ok() {
+            Self::eager_with_tokio(future)
+        } else {
+            Self::lazy(future)
+        };
 
         #[cfg(all(feature = "smol", not(feature = "tokio")))]
         return Self::eager_with_smol(future);
@@ -57,6 +64,23 @@ mod tests {
 
         fn task_failed(failure: TaskFailure) -> Self {
             Self::TaskFailed(failure)
+        }
+    }
+
+    #[cfg(all(feature = "tokio", not(feature = "smol")))]
+    #[test]
+    fn falls_back_to_lazy_outside_runtime_context() {
+        use std::task::{Context, Waker};
+
+        let mut promise: Promise<i32, E> = Promise::eager(async { Ok(42) });
+
+        assert!(promise.is_pending());
+
+        promise.poll(&mut Context::from_waker(Waker::noop()));
+
+        match promise {
+            Promise::Resolved(v) => assert_eq!(v, 42),
+            other => panic!("expected Resolved(42), got {other:?}"),
         }
     }
 

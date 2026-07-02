@@ -11,7 +11,9 @@ where
     /// feature is enabled and lazy otherwise.
     ///
     /// - Any of the `tokio` or `smol` features enabled: delegates to
-    ///   `Promise::eager`, which dispatches to the available runtime.
+    ///   `Promise::eager`, which dispatches to the available runtime; with
+    ///   only `tokio` enabled and no runtime context active, this in turn
+    ///   degrades to lazy scheduling.
     /// - Neither feature enabled: delegates to [`Promise::lazy`]; the future
     ///   only progresses when the [`Promise`] is polled.
     ///
