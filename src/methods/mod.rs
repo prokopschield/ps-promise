@@ -2,6 +2,7 @@ mod abortable;
 mod all;
 mod all_settled;
 mod any;
+mod attempt;
 mod catch;
 mod consume;
 #[cfg(any(feature = "smol", feature = "tokio"))]
