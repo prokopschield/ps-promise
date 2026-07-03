@@ -27,6 +27,7 @@ pedantic = "warn"
 unwrap_used = "warn"
 
 [lints.rust]
+missing_docs = "warn"
 unsafe_code = "forbid"
 
 [profile.dev]
