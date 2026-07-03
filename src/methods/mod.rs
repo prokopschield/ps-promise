@@ -20,6 +20,7 @@ mod finally;
 mod inspect;
 mod inspect_err;
 mod is_consumed;
+mod is_failed;
 mod is_pending;
 mod is_ready;
 mod is_rejected;
