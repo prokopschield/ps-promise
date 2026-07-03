@@ -45,7 +45,7 @@ where
             .lock()
             .unwrap_or_else(PoisonError::into_inner);
 
-        if let Some(ref inner) = &*guard {
+        if let Some(ref mut inner) = &mut *guard {
             if let Some(result) = inner.peek() {
                 // Promise is resolved or rejected -> clone value or error
                 return result.map_or_else(
@@ -60,8 +60,14 @@ where
                 // let mut p = Promise::resolve(123);
                 // p.consume();
                 // p.share().poll(cx);
+            } else if inner.is_failed() {
+                // Task failures are repeat-consumable: consuming converts the
+                // stored failure through E::task_failed while leaving it in
+                // place, so every waiter receives its own rejection.
+                if let Some(Err(err)) = inner.consume() {
+                    return PollStep::Rejected(err);
+                }
             }
-            // TODO: check for failure!
         } else {
             // another executor thread is in the process of executing the underlying Promise
             // or recursion has occured

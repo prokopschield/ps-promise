@@ -167,4 +167,20 @@ mod tests {
         assert_eq!(second_result, Poll::Ready(Err(E::Fail)));
         assert_eq!(first_result, second_result);
     }
+
+    #[test]
+    fn shared_clones_agree_on_task_failure() {
+        let shared: SharedPromise<i32, E> =
+            Promise::<i32, E>::lazy(async { panic!("boom") }).shared();
+
+        let mut first = shared.clone();
+        let mut second = shared;
+
+        let first_result = poll(&mut first);
+        let second_result = poll(&mut second);
+
+        assert_eq!(first_result, Poll::Ready(Err(E::TaskFailed)));
+        assert_eq!(second_result, Poll::Ready(Err(E::TaskFailed)));
+        assert_eq!(first_result, second_result);
+    }
 }
