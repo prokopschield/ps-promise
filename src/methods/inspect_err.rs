@@ -2,7 +2,7 @@ use crate::{Promise, PromiseRejection};
 
 impl<T, E> Promise<T, E>
 where
-    T: Send + Unpin + 'static,
+    T: Send + 'static,
     E: PromiseRejection,
 {
     /// Runs a callback with a reference to the rejection, then passes the
@@ -54,7 +54,7 @@ mod tests {
 
     fn drive<T, F>(make: F) -> Result<T, E>
     where
-        T: Send + Unpin + 'static,
+        T: Send + 'static,
         F: FnOnce() -> Promise<T, E> + Send + 'static,
     {
         #[cfg(feature = "tokio")]

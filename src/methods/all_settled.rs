@@ -7,7 +7,7 @@ use crate::{Promise, PromiseRejection};
 
 impl<T, E> Promise<T, E>
 where
-    T: Send + Unpin + 'static,
+    T: Send + 'static,
     E: PromiseRejection,
 {
     /// Waits for every promise to settle and collects the outcomes in order.
@@ -28,7 +28,7 @@ where
 
 impl<T, E> Future for PromiseAllSettled<T, E>
 where
-    T: Send + Unpin + 'static,
+    T: Send + 'static,
     E: PromiseRejection,
 {
     type Output = Result<Vec<Result<T, E>>, E>;
@@ -68,7 +68,7 @@ where
 
 pub struct PromiseAllSettled<T, E>
 where
-    T: Send + Unpin + 'static,
+    T: Send + 'static,
     E: PromiseRejection,
 {
     promises: Vec<Promise<T, E>>,
@@ -76,7 +76,7 @@ where
 
 impl<I, T, E> From<I> for PromiseAllSettled<T, E>
 where
-    T: Send + Unpin + 'static,
+    T: Send + 'static,
     E: PromiseRejection,
     I: IntoIterator<Item = Promise<T, E>>,
 {

@@ -6,7 +6,6 @@ use super::super::AbortablePromise;
 
 impl<T, E> AbortablePromise<T, E>
 where
-    T: Unpin,
     E: PromiseRejection,
 {
     pub(in super::super::super) fn new(inner: Promise<T, E>, receiver: Receiver<()>) -> Self {

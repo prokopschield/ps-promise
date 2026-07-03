@@ -10,7 +10,6 @@ use super::state::SharedState;
 #[derive(Clone, Debug, Default)]
 pub(super) struct SharedWaker<T, E>
 where
-    T: Unpin,
     E: PromiseRejection,
 {
     state: Weak<SharedState<T, E>>,

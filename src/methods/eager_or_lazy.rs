@@ -4,7 +4,7 @@ use crate::{Promise, PromiseRejection};
 
 impl<T, E> Promise<T, E>
 where
-    T: Send + Unpin + 'static,
+    T: Send + 'static,
     E: PromiseRejection,
 {
     /// Wraps a [`Future`] in a [`Promise`], eagerly scheduled when a runtime

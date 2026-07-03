@@ -7,7 +7,7 @@ use crate::{Promise, PromiseRejection};
 
 impl<T, E> Promise<T, E>
 where
-    T: Send + Unpin + 'static,
+    T: Send + 'static,
     E: PromiseRejection,
 {
     /// Joins this [`Promise`] with another of a possibly different value
@@ -23,7 +23,7 @@ where
     /// `((A, B), C)`.
     pub fn zip<U>(self, other: Promise<U, E>) -> Promise<(T, U), E>
     where
-        U: Send + Unpin + 'static,
+        U: Send + 'static,
     {
         Promise::lazy(PromiseZip {
             left: self,
@@ -34,8 +34,8 @@ where
 
 struct PromiseZip<T, U, E>
 where
-    T: Send + Unpin + 'static,
-    U: Send + Unpin + 'static,
+    T: Send + 'static,
+    U: Send + 'static,
     E: PromiseRejection,
 {
     left: Promise<T, E>,
@@ -44,8 +44,8 @@ where
 
 impl<T, U, E> Future for PromiseZip<T, U, E>
 where
-    T: Send + Unpin + 'static,
-    U: Send + Unpin + 'static,
+    T: Send + 'static,
+    U: Send + 'static,
     E: PromiseRejection,
 {
     type Output = Result<(T, U), E>;

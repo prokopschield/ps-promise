@@ -4,7 +4,7 @@ use crate::{Promise, PromiseRejection};
 
 impl<T, E> Promise<T, E>
 where
-    T: Send + Unpin + 'static,
+    T: Send + 'static,
     E: PromiseRejection,
 {
     /// Runs a callback once this [`Promise`] settles, regardless of outcome,
@@ -57,7 +57,7 @@ mod tests {
 
     fn drive<T, F>(make: F) -> Result<T, E>
     where
-        T: Send + Unpin + 'static,
+        T: Send + 'static,
         F: FnOnce() -> Promise<T, E> + Send + 'static,
     {
         #[cfg(feature = "tokio")]

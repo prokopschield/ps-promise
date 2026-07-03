@@ -13,7 +13,6 @@ pub type BoxedPromiseFuture<T, E> = Pin<Box<dyn Future<Output = Result<T, E>> + 
 #[must_use = "Promises don't do anything unless you await them!"]
 pub enum Promise<T, E>
 where
-    T: Unpin,
     E: PromiseRejection,
 {
     Pending(BoxedPromiseFuture<T, E>),

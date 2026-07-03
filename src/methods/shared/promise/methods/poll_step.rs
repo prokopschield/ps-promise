@@ -11,7 +11,7 @@ use super::super::SharedPromise;
 
 pub(in crate::methods::shared) enum PollStep<T, E>
 where
-    T: Clone + Send + Unpin + 'static,
+    T: Clone + Send + 'static,
     E: PromiseRejection + Clone,
 {
     /// Equvalent to `Poll::Pending`
@@ -30,7 +30,7 @@ where
 
 impl<T, E> SharedPromise<T, E>
 where
-    T: Clone + Send + Unpin + 'static,
+    T: Clone + Send + 'static,
     E: PromiseRejection + Clone,
 {
     pub(in crate::methods::shared) fn poll_step(

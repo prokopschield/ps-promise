@@ -4,7 +4,6 @@ use crate::{Promise, PromiseRejection, TaskFailure};
 
 impl<T, E> Promise<T, E>
 where
-    T: Unpin,
     E: PromiseRejection,
 {
     /// Calls a closure and captures its outcome in a settled [`Promise`].

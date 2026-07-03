@@ -4,7 +4,7 @@ use crate::{Promise, PromiseRejection};
 
 impl<T, E> Promise<T, E>
 where
-    T: Send + Unpin + 'static,
+    T: Send + 'static,
     E: PromiseRejection,
 {
     pub fn map_err<EO, F, Fut>(self, f: F) -> Promise<T, EO>

@@ -18,7 +18,7 @@ use crate::{Promise, PromiseRejection};
 
 impl<T, E> Promise<T, E>
 where
-    T: Clone + Send + Unpin + 'static,
+    T: Clone + Send + 'static,
     E: PromiseRejection + Clone,
 {
     /// Converts this [`Promise`] into a clonable, multi-consumer handle.

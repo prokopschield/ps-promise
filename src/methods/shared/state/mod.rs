@@ -13,7 +13,6 @@ use crate::{Promise, PromiseRejection};
 
 pub(super) struct SharedState<T, E>
 where
-    T: Unpin,
     E: PromiseRejection,
 {
     pub(super) inner: Mutex<Option<Promise<T, E>>>,

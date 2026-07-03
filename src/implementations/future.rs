@@ -7,7 +7,6 @@ use crate::{Promise, PromiseRejection};
 
 impl<T, E> Future for Promise<T, E>
 where
-    T: Unpin,
     E: PromiseRejection,
 {
     type Output = Result<T, E>;

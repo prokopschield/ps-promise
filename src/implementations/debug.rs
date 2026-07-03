@@ -4,7 +4,7 @@ use crate::{Promise, PromiseRejection};
 
 impl<T, E> Debug for Promise<T, E>
 where
-    T: Unpin + Debug,
+    T: Debug,
     E: PromiseRejection + Debug,
 {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {

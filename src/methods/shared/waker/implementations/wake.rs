@@ -10,7 +10,7 @@ use super::super::SharedWaker;
 
 impl<T, E> Wake for SharedWaker<T, E>
 where
-    T: Send + Unpin,
+    T: Send,
     E: PromiseRejection,
 {
     fn wake(self: Arc<Self>) {

@@ -6,7 +6,6 @@ use super::super::SharedState;
 
 impl<T, E> SharedState<T, E>
 where
-    T: Unpin,
     E: PromiseRejection,
 {
     /// Registers `waker` as the wakeup handle for the consumer identified by

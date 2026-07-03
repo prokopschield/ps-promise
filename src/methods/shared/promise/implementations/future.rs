@@ -17,7 +17,7 @@ use super::super::SharedPromise;
 
 impl<T, E> Future for SharedPromise<T, E>
 where
-    T: Clone + Send + Unpin + 'static,
+    T: Clone + Send + 'static,
     E: PromiseRejection + Clone,
 {
     type Output = Result<T, E>;

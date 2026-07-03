@@ -6,7 +6,6 @@ use super::super::SharedPromise;
 
 impl<T, E> Clone for SharedPromise<T, E>
 where
-    T: Unpin,
     E: PromiseRejection,
 {
     fn clone(&self) -> Self {

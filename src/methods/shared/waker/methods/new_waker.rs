@@ -7,7 +7,7 @@ use super::super::SharedWaker;
 
 impl<T, E> SharedWaker<T, E>
 where
-    T: Unpin + Send + 'static,
+    T: Send + 'static,
     E: PromiseRejection,
 {
     pub(in crate::methods::shared) fn new_waker(state: &Arc<SharedState<T, E>>) -> Waker {

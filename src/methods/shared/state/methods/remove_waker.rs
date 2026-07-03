@@ -6,7 +6,6 @@ use super::super::SharedState;
 
 impl<T, E> SharedState<T, E>
 where
-    T: Unpin,
     E: PromiseRejection,
 {
     /// Deregisters the consumer identified by `waiter_id`, dropping its

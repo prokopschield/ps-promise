@@ -2,7 +2,7 @@ use crate::{Promise, PromiseRejection};
 
 impl<T, E> Default for Promise<T, E>
 where
-    T: Default + Unpin,
+    T: Default,
     E: PromiseRejection,
 {
     fn default() -> Self {

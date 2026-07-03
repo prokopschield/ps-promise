@@ -7,7 +7,7 @@ use crate::{Promise, PromiseRejection, TaskFailure};
 
 impl<T, E> Promise<T, E>
 where
-    T: Send + Unpin + 'static,
+    T: Send + 'static,
     E: PromiseRejection,
 {
     /// Calls a closure returning a [`Future`] and captures the outcome in a

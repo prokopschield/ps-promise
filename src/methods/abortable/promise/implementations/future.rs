@@ -14,7 +14,6 @@ use super::super::AbortablePromise;
 
 impl<T, E> Future for AbortablePromise<T, E>
 where
-    T: Unpin,
     E: PromiseRejection,
 {
     type Output = Result<T, E>;

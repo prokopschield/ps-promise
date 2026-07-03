@@ -16,7 +16,7 @@ pub struct ResolversDropped;
 
 impl<T, E> Promise<T, E>
 where
-    T: Send + Unpin + 'static,
+    T: Send + 'static,
     E: PromiseRejection,
 {
     /// Creates a pending [`Promise`] along with handles that settle it.

@@ -4,7 +4,6 @@ use crate::{Promise, PromiseRejection};
 
 impl<T, E> Promise<T, E>
 where
-    T: Unpin,
     E: PromiseRejection,
 {
     /// Polls the promise's inner future if pending.

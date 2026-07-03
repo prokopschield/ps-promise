@@ -4,12 +4,12 @@ use crate::{Promise, PromiseRejection};
 
 impl<T, E> Promise<T, E>
 where
-    T: Send + Unpin + 'static,
+    T: Send + 'static,
     E: PromiseRejection,
 {
     pub fn then<TO, EO, F, Fut>(self, f: F) -> Promise<TO, EO>
     where
-        TO: Send + Unpin + 'static,
+        TO: Send + 'static,
         EO: PromiseRejection + From<E>,
         F: FnOnce(T) -> Fut + Send + 'static,
         Fut: Future<Output = Result<TO, EO>> + Send + 'static,

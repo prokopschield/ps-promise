@@ -13,7 +13,7 @@ pub use outcome::{PromiseAborted, PromiseSettled};
 
 impl<T, E> Promise<T, E>
 where
-    T: Send + Unpin + 'static,
+    T: Send + 'static,
     E: PromiseRejection,
 {
     /// Wraps this [`Promise`] with an external abort handle.

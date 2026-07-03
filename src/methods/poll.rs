@@ -7,7 +7,6 @@ use crate::{Promise, PromiseRejection, TaskFailure};
 
 impl<T, E> Promise<T, E>
 where
-    T: Unpin,
     E: PromiseRejection,
 {
     /// Attempts to advance this [`Promise`] using the provided execution [`Context`].
