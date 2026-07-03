@@ -4,7 +4,7 @@ use crate::WrappedPromiseRejection;
 
 impl<E> PartialOrd for WrappedPromiseRejection<E>
 where
-    E: PartialOrd + Send + Unpin + 'static,
+    E: PartialOrd + Send + 'static,
 {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         match (self, other) {

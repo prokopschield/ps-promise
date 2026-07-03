@@ -8,7 +8,7 @@ pub use wrapped::WrappedPromiseRejection;
 
 pub trait PromiseRejection
 where
-    Self: Send + Unpin + 'static,
+    Self: Send + 'static,
 {
     /// Returns the error variant representing this [`Promise`](crate::Promise) being consumed more than once.
     fn already_consumed() -> Self;

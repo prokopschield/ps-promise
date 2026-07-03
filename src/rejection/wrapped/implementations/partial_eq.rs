@@ -2,7 +2,7 @@ use crate::WrappedPromiseRejection;
 
 impl<E> PartialEq for WrappedPromiseRejection<E>
 where
-    E: PartialEq + Send + Unpin + 'static,
+    E: PartialEq + Send + 'static,
 {
     fn eq(&self, other: &Self) -> bool {
         match (self, other) {

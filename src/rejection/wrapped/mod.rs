@@ -9,7 +9,7 @@ use crate::TaskFailure;
 #[derive(Clone, Debug, Error)]
 pub enum WrappedPromiseRejection<E = Infallible>
 where
-    E: Send + Unpin + 'static,
+    E: Send + 'static,
 {
     #[error("This Promise was consumed already.")]
     AlreadyConsumed,

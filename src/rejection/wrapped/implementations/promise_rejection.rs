@@ -2,7 +2,7 @@ use crate::{PromiseRejection, TaskFailure, WrappedPromiseRejection};
 
 impl<E> PromiseRejection for WrappedPromiseRejection<E>
 where
-    E: Send + Unpin + 'static,
+    E: Send + 'static,
 {
     fn already_consumed() -> Self {
         Self::AlreadyConsumed
