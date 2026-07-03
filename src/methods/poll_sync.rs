@@ -35,8 +35,8 @@ mod tests {
         let mut promise = Promise::lazy(async { Ok::<_, ()>(42) });
         promise.poll_sync();
 
-        match promise {
-            Promise::Resolved(v) => assert_eq!(v, 42),
+        match promise.consume() {
+            Some(Ok(v)) => assert_eq!(v, 42),
             _ => panic!("expected Resolved"),
         }
     }
@@ -46,8 +46,8 @@ mod tests {
         let mut promise: Promise<(), ()> = Promise::lazy(async { Err(()) });
         promise.poll_sync();
 
-        match promise {
-            Promise::Rejected(()) => {}
+        match promise.consume() {
+            Some(Err(())) => {}
             _ => panic!("expected Rejected"),
         }
     }

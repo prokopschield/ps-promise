@@ -75,8 +75,8 @@ mod tests {
 
         p.ready(&mut cx());
 
-        match p {
-            Promise::Resolved(v) => assert_eq!(v, 42),
+        match p.consume() {
+            Some(Ok(v)) => assert_eq!(v, 42),
             other => panic!("expected Resolved(42), got {other:?}"),
         }
     }
@@ -87,8 +87,8 @@ mod tests {
 
         p.ready(&mut cx());
 
-        match p {
-            Promise::Rejected(E::Fail) => {}
+        match p.consume() {
+            Some(Err(E::Fail)) => {}
             other => panic!("expected Rejected(Fail), got {other:?}"),
         }
     }
@@ -99,8 +99,8 @@ mod tests {
 
         p.ready(&mut cx());
 
-        match p {
-            Promise::Rejected(E::TaskFailed(failure @ TaskFailure::Panic(_))) => {
+        match p.consume() {
+            Some(Err(E::TaskFailed(failure @ TaskFailure::Panic(_)))) => {
                 assert_eq!(failure.to_string(), "task panicked: boom");
             }
             other => panic!("expected Rejected(TaskFailed(Panic(_))), got {other:?}"),
@@ -117,8 +117,8 @@ mod tests {
 
         p.ready(&mut cx());
 
-        match p {
-            Promise::Rejected(E::TaskFailed(TaskFailure::Error(_))) => {}
+        match p.consume() {
+            Some(Err(E::TaskFailed(TaskFailure::Error(_)))) => {}
             other => panic!("expected Rejected(TaskFailed(Error(_))), got {other:?}"),
         }
     }
@@ -130,8 +130,8 @@ mod tests {
 
         p.ready(&mut cx());
 
-        match p {
-            Promise::Rejected(E::Fail) => {}
+        match p.consume() {
+            Some(Err(E::Fail)) => {}
             other => panic!("expected Rejected(Fail), got {other:?}"),
         }
     }

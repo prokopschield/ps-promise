@@ -19,9 +19,9 @@ where
         F: FnOnce() -> Result<T, E>,
     {
         match catch_unwind(AssertUnwindSafe(f)) {
-            Ok(Ok(value)) => Self::Resolved(value),
-            Ok(Err(err)) => Self::Rejected(err),
-            Err(panic) => Self::Rejected(E::task_failed(TaskFailure::from(panic))),
+            Ok(Ok(value)) => Self::resolve(value),
+            Ok(Err(err)) => Self::reject(err),
+            Err(panic) => Self::reject(E::task_failed(TaskFailure::from(panic))),
         }
     }
 }
@@ -49,34 +49,34 @@ mod tests {
 
     #[test]
     fn ok_produces_resolved() {
-        let promise: Promise<u32, E> = Promise::attempt(|| Ok(42));
+        let mut promise: Promise<u32, E> = Promise::attempt(|| Ok(42));
 
         assert!(promise.is_resolved());
 
-        match promise {
-            Promise::Resolved(value) => assert_eq!(value, 42),
+        match promise.consume() {
+            Some(Ok(value)) => assert_eq!(value, 42),
             other => panic!("expected Resolved(42), got {other:?}"),
         }
     }
 
     #[test]
     fn err_produces_rejected() {
-        let promise: Promise<u32, E> = Promise::attempt(|| Err(E::Fail));
+        let mut promise: Promise<u32, E> = Promise::attempt(|| Err(E::Fail));
 
         assert!(promise.is_rejected());
 
-        match promise {
-            Promise::Rejected(E::Fail) => {}
+        match promise.consume() {
+            Some(Err(E::Fail)) => {}
             other => panic!("expected Rejected(Fail), got {other:?}"),
         }
     }
 
     #[test]
     fn panic_produces_task_failed_rejection() {
-        let promise: Promise<u32, E> = Promise::attempt(|| panic!("boom"));
+        let mut promise: Promise<u32, E> = Promise::attempt(|| panic!("boom"));
 
-        match promise {
-            Promise::Rejected(E::TaskFailed(failure @ TaskFailure::Panic(_))) => {
+        match promise.consume() {
+            Some(Err(E::TaskFailed(failure @ TaskFailure::Panic(_)))) => {
                 assert_eq!(failure.to_string(), "task panicked: boom");
             }
             other => panic!("expected Rejected(TaskFailed(Panic(_))), got {other:?}"),

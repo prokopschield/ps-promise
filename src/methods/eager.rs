@@ -78,8 +78,8 @@ mod tests {
 
         promise.poll(&mut Context::from_waker(Waker::noop()));
 
-        match promise {
-            Promise::Resolved(v) => assert_eq!(v, 42),
+        match promise.consume() {
+            Some(Ok(v)) => assert_eq!(v, 42),
             other => panic!("expected Resolved(42), got {other:?}"),
         }
     }

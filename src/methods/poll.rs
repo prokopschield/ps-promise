@@ -3,7 +3,7 @@ use std::{
     task::{Context, Poll},
 };
 
-use crate::{Promise, PromiseRejection, TaskFailure};
+use crate::{Promise, PromiseRejection, State, TaskFailure};
 
 impl<T, E> Promise<T, E>
 where
@@ -13,7 +13,7 @@ where
     ///
     /// This performs exactly one poll of the underlying future.
     pub fn poll(&mut self, cx: &mut Context<'_>) {
-        let Self::Pending(future) = self else {
+        let State::Pending(future) = &mut self.state else {
             return;
         };
 
@@ -22,12 +22,14 @@ where
 
         let poll = match catch_unwind(move || future.as_mut().poll(&mut cx)) {
             Ok(poll) => poll,
-            Err(panic) => return *self = Self::Rejected(E::task_failed(TaskFailure::from(panic))),
+            Err(panic) => {
+                return self.state = State::Rejected(E::task_failed(TaskFailure::from(panic)))
+            }
         };
 
         match poll {
-            Poll::Ready(Ok(value)) => *self = Self::Resolved(value),
-            Poll::Ready(Err(err)) => *self = Self::Rejected(err),
+            Poll::Ready(Ok(value)) => self.state = State::Resolved(value),
+            Poll::Ready(Err(err)) => self.state = State::Rejected(err),
             Poll::Pending => {}
         }
     }
@@ -71,8 +73,8 @@ mod tests {
     fn resolves_ready_future() {
         let mut promise: Promise<i32, E> = Promise::lazy(async { Ok(42) });
         promise.poll(&mut cx());
-        match promise {
-            Promise::Resolved(v) => assert_eq!(v, 42),
+        match promise.consume() {
+            Some(Ok(v)) => assert_eq!(v, 42),
             other => panic!("expected Resolved(42), got {other:?}"),
         }
     }
@@ -81,8 +83,8 @@ mod tests {
     fn rejects_ready_future() {
         let mut promise: Promise<(), E> = Promise::lazy(async { Err(E::Fail) });
         promise.poll(&mut cx());
-        match promise {
-            Promise::Rejected(E::Fail) => {}
+        match promise.consume() {
+            Some(Err(E::Fail)) => {}
             other => panic!("expected Rejected(Fail), got {other:?}"),
         }
     }
@@ -107,8 +109,8 @@ mod tests {
     fn resolved_is_identity() {
         let mut promise: Promise<i32, E> = Promise::resolve(99);
         promise.poll(&mut cx());
-        match promise {
-            Promise::Resolved(v) => assert_eq!(v, 99),
+        match promise.consume() {
+            Some(Ok(v)) => assert_eq!(v, 99),
             other => panic!("expected Resolved(99), got {other:?}"),
         }
     }
@@ -117,15 +119,18 @@ mod tests {
     fn rejected_is_identity() {
         let mut promise: Promise<(), E> = Promise::reject(E::Fail);
         promise.poll(&mut cx());
-        match promise {
-            Promise::Rejected(E::Fail) => {}
+        match promise.consume() {
+            Some(Err(E::Fail)) => {}
             other => panic!("expected Rejected(Fail), got {other:?}"),
         }
     }
 
     #[test]
     fn consumed_is_identity() {
-        let mut promise: Promise<(), E> = Promise::Consumed;
+        let mut promise: Promise<(), E> = Promise::resolve(());
+
+        assert!(promise.consume().is_some());
+
         promise.poll(&mut cx());
         assert!(promise.is_consumed());
     }
@@ -159,8 +164,8 @@ mod tests {
         ready.store(true, Ordering::Relaxed);
 
         promise.poll(&mut cx());
-        match promise {
-            Promise::Resolved(v) => assert_eq!(v, 7),
+        match promise.consume() {
+            Some(Ok(v)) => assert_eq!(v, 7),
             other => panic!("expected Resolved(7), got {other:?}"),
         }
     }
@@ -194,8 +199,8 @@ mod tests {
         ready.store(true, Ordering::Relaxed);
 
         promise.poll(&mut cx());
-        match promise {
-            Promise::Rejected(E::Fail) => {}
+        match promise.consume() {
+            Some(Err(E::Fail)) => {}
             other => panic!("expected Rejected(Fail), got {other:?}"),
         }
     }

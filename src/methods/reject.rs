@@ -1,7 +1,12 @@
-use crate::Promise;
+use crate::{Promise, PromiseRejection, State};
 
-impl<T, E> Promise<T, E> {
+impl<T, E> Promise<T, E>
+where
+    E: PromiseRejection,
+{
     pub const fn reject(err: E) -> Self {
-        Self::Rejected(err)
+        Self {
+            state: State::Rejected(err),
+        }
     }
 }

@@ -124,8 +124,8 @@ mod tests {
         let mut all: Promise<Vec<()>, E> = Promise::all([]);
         all.ready(&mut cx());
 
-        match all {
-            Promise::Resolved(v) => assert!(v.is_empty()),
+        match all.consume() {
+            Some(Ok(v)) => assert!(v.is_empty()),
             other => panic!("expected Resolved(vec![]), got {other:?}"),
         }
     }
@@ -140,8 +140,8 @@ mod tests {
 
         all.ready(&mut cx());
 
-        match all {
-            Promise::Resolved(v) => assert_eq!(v, vec![1, 2, 3]),
+        match all.consume() {
+            Some(Ok(v)) => assert_eq!(v, vec![1, 2, 3]),
             other => panic!("expected Resolved([1,2,3]), got {other:?}"),
         }
     }
@@ -156,8 +156,8 @@ mod tests {
 
         all.ready(&mut cx());
 
-        match all {
-            Promise::Rejected(E::Code(2)) => {}
+        match all.consume() {
+            Some(Err(E::Code(2))) => {}
             other => panic!("expected Rejected(Code(2)), got {other:?}"),
         }
     }

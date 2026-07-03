@@ -1,7 +1,12 @@
-use crate::{BoxedPromiseFuture, Promise};
+use crate::{BoxedPromiseFuture, Promise, PromiseRejection, State};
 
-impl<T, E> From<BoxedPromiseFuture<T, E>> for Promise<T, E> {
+impl<T, E> From<BoxedPromiseFuture<T, E>> for Promise<T, E>
+where
+    E: PromiseRejection,
+{
     fn from(future: BoxedPromiseFuture<T, E>) -> Self {
-        Self::Pending(future)
+        Self {
+            state: State::Pending(future),
+        }
     }
 }

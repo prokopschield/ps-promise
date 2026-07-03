@@ -123,8 +123,8 @@ mod tests {
 
         settled.ready(&mut cx());
 
-        match settled {
-            Promise::Resolved(v) => assert!(v.is_empty()),
+        match settled.consume() {
+            Some(Ok(v)) => assert!(v.is_empty()),
             other => panic!("expected Resolved(vec![]), got {other:?}"),
         }
     }
@@ -139,8 +139,8 @@ mod tests {
 
         settled.ready(&mut cx());
 
-        match settled {
-            Promise::Resolved(v) => assert_eq!(v, vec![Ok(1), Err(E::Code(2)), Ok(3)]),
+        match settled.consume() {
+            Some(Ok(v)) => assert_eq!(v, vec![Ok(1), Err(E::Code(2)), Ok(3)]),
             other => panic!("expected Resolved([Ok(1), Err(Code(2)), Ok(3)]), got {other:?}"),
         }
     }
@@ -154,8 +154,8 @@ mod tests {
 
         settled.ready(&mut cx());
 
-        match settled {
-            Promise::Resolved(v) => assert_eq!(v, vec![Err(E::Code(1)), Err(E::Code(2))]),
+        match settled.consume() {
+            Some(Ok(v)) => assert_eq!(v, vec![Err(E::Code(1)), Err(E::Code(2))]),
             other => panic!("expected Resolved([Err(Code(1)), Err(Code(2))]), got {other:?}"),
         }
     }

@@ -1,7 +1,7 @@
-use crate::Promise;
+use crate::{Promise, State};
 
 impl<T, E> Promise<T, E> {
     pub const fn is_pending(&self) -> bool {
-        matches!(self, Self::Pending(_))
+        matches!(self.state, State::Pending(_))
     }
 }

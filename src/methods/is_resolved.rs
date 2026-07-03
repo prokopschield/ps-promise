@@ -1,7 +1,7 @@
-use crate::Promise;
+use crate::{Promise, State};
 
 impl<T, E> Promise<T, E> {
     pub const fn is_resolved(&self) -> bool {
-        matches!(self, Self::Resolved(_))
+        matches!(self.state, State::Resolved(_))
     }
 }

@@ -28,7 +28,7 @@ where
     {
         match catch_unwind(AssertUnwindSafe(f)) {
             Ok(future) => Self::eager_or_lazy(future),
-            Err(panic) => Self::Rejected(E::task_failed(TaskFailure::from(panic))),
+            Err(panic) => Self::reject(E::task_failed(TaskFailure::from(panic))),
         }
     }
 }
@@ -58,11 +58,11 @@ mod tests {
 
     #[test]
     fn panic_in_closure_produces_task_failed_rejection() {
-        let promise: Promise<u32, E> =
+        let mut promise: Promise<u32, E> =
             Promise::attempt_async(|| -> Ready<Result<u32, E>> { panic!("boom") });
 
-        match promise {
-            Promise::Rejected(E::TaskFailed(failure @ TaskFailure::Panic(_))) => {
+        match promise.consume() {
+            Some(Err(E::TaskFailed(failure @ TaskFailure::Panic(_)))) => {
                 assert_eq!(failure.to_string(), "task panicked: boom");
             }
             other => panic!("expected Rejected(TaskFailed(Panic(_))), got {other:?}"),
@@ -95,8 +95,8 @@ mod tests {
 
         promise.poll(&mut Context::from_waker(Waker::noop()));
 
-        match promise {
-            Promise::Resolved(value) => assert_eq!(value, 42),
+        match promise.consume() {
+            Some(Ok(value)) => assert_eq!(value, 42),
             other => panic!("expected Resolved(42), got {other:?}"),
         }
     }

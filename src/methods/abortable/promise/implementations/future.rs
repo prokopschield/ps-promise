@@ -8,7 +8,7 @@ use std::{
     },
 };
 
-use crate::{Aborted, Promise, PromiseRejection, TaskFailure};
+use crate::{Aborted, PromiseRejection, TaskFailure};
 
 use super::super::AbortablePromise;
 
@@ -24,14 +24,14 @@ where
 
         this.receiver.poll(cx);
 
-        if matches!(this.receiver, Promise::Resolved(())) {
+        if this.receiver.is_resolved() {
             return aborted();
         }
 
         this.inner.poll(cx);
         this.receiver.poll(cx);
 
-        if matches!(this.receiver, Promise::Resolved(())) {
+        if this.receiver.is_resolved() {
             aborted()
         } else if let Some(result) = this.inner.consume() {
             Ready(result)

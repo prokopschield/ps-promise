@@ -1,8 +1,11 @@
 use std::future::Future;
 
-use crate::Promise;
+use crate::{Promise, PromiseRejection, State};
 
-impl<T, E> Promise<T, E> {
+impl<T, E> Promise<T, E>
+where
+    E: PromiseRejection,
+{
     /// Wraps a [`Future`] in a [`Promise`] without driving it.
     ///
     /// The future does not make progress until the [`Promise`] is polled.
@@ -10,7 +13,9 @@ impl<T, E> Promise<T, E> {
     where
         F: Future<Output = Result<T, E>> + Send + 'static,
     {
-        Self::Pending(Box::pin(future))
+        Self {
+            state: State::Pending(Box::pin(future)),
+        }
     }
 }
 
