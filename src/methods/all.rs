@@ -10,6 +10,14 @@ where
     T: Send + 'static,
     E: PromiseRejection,
 {
+    /// Resolves with every value once all promises resolve, or rejects with
+    /// the first rejection it observes.
+    ///
+    /// Mirrors ECMAScript's `Promise.all`: values appear in input order, and
+    /// an empty input resolves immediately with an empty `Vec`. The returned
+    /// [`Promise`] is lazy, and each poll re-polls every still-pending
+    /// input, so driving n independently-woken promises costs O(n²) child
+    /// polls in total.
     pub fn all<I>(promises: I) -> Promise<Vec<T>, E>
     where
         I: IntoIterator<Item = Self>,

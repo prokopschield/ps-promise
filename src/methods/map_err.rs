@@ -7,6 +7,11 @@ where
     T: Send + 'static,
     E: PromiseRejection,
 {
+    /// Transforms the rejection with an asynchronous function.
+    ///
+    /// `f` runs once this promise rejects; a resolved value passes through
+    /// untouched. The returned promise is scheduled via
+    /// [`Promise::eager_or_lazy`].
     pub fn map_err<EO, F, Fut>(self, f: F) -> Promise<T, EO>
     where
         EO: PromiseRejection,

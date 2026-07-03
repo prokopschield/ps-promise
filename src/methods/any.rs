@@ -10,6 +10,15 @@ where
     T: Send + 'static,
     E: PromiseRejection,
 {
+    /// Resolves with the first value it observes, or rejects with every
+    /// rejection once all promises reject.
+    ///
+    /// Mirrors ECMAScript's `Promise.any`, with `Vec<E>` in place of
+    /// `AggregateError`: rejections appear in input order, and an empty
+    /// input rejects immediately with an empty `Vec`. The returned
+    /// [`Promise`] is lazy, and each poll re-polls every still-pending
+    /// input, so driving n independently-woken promises costs O(n²) child
+    /// polls in total.
     pub fn any<I>(promises: I) -> Promise<T, Vec<E>>
     where
         I: IntoIterator<Item = Self>,

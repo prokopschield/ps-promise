@@ -7,6 +7,13 @@ where
     T: Send + 'static,
     E: PromiseRejection,
 {
+    /// Settles with the outcome of the first promise to settle.
+    ///
+    /// Mirrors ECMAScript's `Promise.race`, including its footgun: a race
+    /// over an empty input is forever pending, and awaiting it parks the
+    /// task permanently, since no waker is ever registered. The returned
+    /// [`Promise`] is lazy, and each poll re-polls every still-pending
+    /// input.
     pub fn race<I>(promises: I) -> Self
     where
         I: IntoIterator<Item = Self>,

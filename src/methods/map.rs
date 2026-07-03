@@ -7,6 +7,11 @@ where
     T: Send + 'static,
     E: PromiseRejection,
 {
+    /// Transforms the resolved value with an asynchronous function.
+    ///
+    /// `f` runs once this promise resolves; a rejection passes through
+    /// untouched. The returned promise is scheduled via
+    /// [`Promise::eager_or_lazy`].
     pub fn map<TO, F, Fut>(self, f: F) -> Promise<TO, E>
     where
         TO: Send + 'static,
