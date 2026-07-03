@@ -5,11 +5,20 @@ use std::sync::Arc;
 
 use thiserror::Error;
 
+/// The cause of a task failure: the underlying task ended without producing
+/// a rejection value, e.g. it panicked or was cancelled.
+///
+/// Passed to
+/// [`PromiseRejection::task_failed`](crate::PromiseRejection::task_failed)
+/// so the rejection type can represent the failure.
 #[derive(Clone, Error)]
 pub enum TaskFailure {
+    /// The task failed with an error, such as a timeout, an abort, or
+    /// dropped resolver handles.
     #[error(transparent)]
     Error(Arc<dyn Error + Send + Sync + 'static>),
 
+    /// The task panicked. Carries the panic message.
     #[error("task panicked: {0}")]
     Panic(Arc<str>),
 }

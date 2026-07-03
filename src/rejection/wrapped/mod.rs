@@ -6,15 +6,23 @@ use thiserror::Error;
 
 use crate::TaskFailure;
 
+/// A ready-made [`PromiseRejection`](crate::PromiseRejection) wrapping an
+/// arbitrary error type `E`.
+///
+/// [`Promise::wrap`](crate::Promise::wrap) uses this to adapt futures whose
+/// error type does not implement the trait.
 #[derive(Clone, Debug, Error)]
 pub enum WrappedPromiseRejection<E = Infallible>
 where
     E: Send + 'static,
 {
+    /// The promise was consumed more than once.
     #[error("This Promise was consumed already.")]
     AlreadyConsumed,
+    /// The underlying task failed.
     #[error("The underlying task failed: {0}")]
     TaskFailed(TaskFailure),
+    /// The wrapped rejection value.
     #[error(transparent)]
     Rejected(#[from] E),
 }
