@@ -61,6 +61,7 @@ where
                 // p.consume();
                 // p.share().poll(cx);
             }
+            // TODO: check for failure!
         } else {
             // another executor thread is in the process of executing the underlying Promise
             // or recursion has occured

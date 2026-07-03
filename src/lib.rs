@@ -20,4 +20,5 @@ pub(crate) enum State<T, E> {
     Resolved(T),
     Rejected(E),
     Consumed,
+    Failed(TaskFailure),
 }

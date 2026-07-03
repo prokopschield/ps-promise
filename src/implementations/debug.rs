@@ -15,6 +15,7 @@ where
             State::Resolved(value) => fmt.field("resolved", value),
             State::Rejected(err) => fmt.field("rejected", err),
             State::Consumed => fmt.field("state", &"Consumed"),
+            State::Failed(failure) => fmt.field("failed", failure),
         };
 
         fmt.finish()
