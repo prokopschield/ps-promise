@@ -1,9 +1,6 @@
-use crate::{Promise, PromiseRejection};
+use crate::Promise;
 
-impl<T, E> Promise<T, E>
-where
-    E: PromiseRejection,
-{
+impl<T, E> Promise<T, E> {
     /// If settled, borrows the result without consuming the promise.
     /// Returns `None` while pending and once consumed.
     ///
@@ -44,5 +41,16 @@ mod tests {
 
         assert_eq!(promise.peek(), None);
         assert!(promise.is_pending());
+    }
+
+    #[test]
+    fn works_without_a_promise_rejection_impl() {
+        struct NotARejection;
+
+        let resolved: Promise<i32, NotARejection> = Promise::resolve(42);
+        let rejected: Promise<i32, NotARejection> = Promise::reject(NotARejection);
+
+        assert!(matches!(resolved.peek(), Some(Ok(&42))));
+        assert!(rejected.is_rejected());
     }
 }

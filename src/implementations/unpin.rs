@@ -1,9 +1,9 @@
-use crate::{Promise, PromiseRejection};
+use crate::Promise;
 
 /// [`Promise`] is unconditionally [`Unpin`]: the pending future is heap-pinned
 /// behind [`Pin<Box<_>>`](std::pin::Pin), and no variant's payload is ever
 /// pinned, so moving a [`Promise`] never moves pinned data.
-impl<T, E> Unpin for Promise<T, E> where E: PromiseRejection {}
+impl<T, E> Unpin for Promise<T, E> {}
 
 #[cfg(test)]
 mod tests {

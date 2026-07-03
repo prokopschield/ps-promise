@@ -1,11 +1,8 @@
 use std::future::Future;
 
-use crate::{Promise, PromiseRejection};
+use crate::Promise;
 
-impl<T, E> Promise<T, E>
-where
-    E: PromiseRejection,
-{
+impl<T, E> Promise<T, E> {
     /// Wraps a [`Future`] in a [`Promise`] without driving it.
     ///
     /// The future does not make progress until the [`Promise`] is polled.

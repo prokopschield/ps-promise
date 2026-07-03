@@ -11,10 +11,7 @@ pub use rejection::*;
 pub type BoxedPromiseFuture<T, E> = Pin<Box<dyn Future<Output = Result<T, E>> + Send>>;
 
 #[must_use = "Promises don't do anything unless you await them!"]
-pub enum Promise<T, E>
-where
-    E: PromiseRejection,
-{
+pub enum Promise<T, E> {
     Pending(BoxedPromiseFuture<T, E>),
     Resolved(T),
     Rejected(E),

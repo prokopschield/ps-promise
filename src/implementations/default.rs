@@ -1,9 +1,8 @@
-use crate::{Promise, PromiseRejection};
+use crate::Promise;
 
 impl<T, E> Default for Promise<T, E>
 where
     T: Default,
-    E: PromiseRejection,
 {
     fn default() -> Self {
         Self::Resolved(T::default())

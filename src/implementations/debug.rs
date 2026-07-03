@@ -1,11 +1,11 @@
 use std::fmt::Debug;
 
-use crate::{Promise, PromiseRejection};
+use crate::Promise;
 
 impl<T, E> Debug for Promise<T, E>
 where
     T: Debug,
-    E: PromiseRejection + Debug,
+    E: Debug,
 {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let mut fmt = f.debug_struct("Promise");
