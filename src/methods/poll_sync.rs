@@ -1,11 +1,8 @@
 use std::task::{Context, Waker};
 
-use crate::{Promise, PromiseRejection};
+use crate::Promise;
 
-impl<T, E> Promise<T, E>
-where
-    E: PromiseRejection,
-{
+impl<T, E> Promise<T, E> {
     /// Attempts to advance this [`Promise`] immediately on the current thread.
     ///
     /// This performs exactly one poll of the underlying future using a no-op waker.

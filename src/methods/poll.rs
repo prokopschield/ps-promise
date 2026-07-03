@@ -3,12 +3,9 @@ use std::{
     task::{Context, Poll},
 };
 
-use crate::{Promise, PromiseRejection, State, TaskFailure};
+use crate::{Promise, State, TaskFailure};
 
-impl<T, E> Promise<T, E>
-where
-    E: PromiseRejection,
-{
+impl<T, E> Promise<T, E> {
     /// Attempts to advance this [`Promise`] using the provided execution [`Context`].
     ///
     /// This performs exactly one poll of the underlying future.
