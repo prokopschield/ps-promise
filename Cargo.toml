@@ -3,6 +3,7 @@ name = "ps-promise"
 version = "0.1.0-16"
 edition = "2021"
 description = "Promise-like owned futures"
+readme = "README.md"
 license = "GPL-3.0-or-later"
 
 [dependencies]
