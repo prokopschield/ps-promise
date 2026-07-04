@@ -3,7 +3,7 @@ use std::{
     task::Poll::{Pending, Ready},
 };
 
-use crate::{Promise, PromiseRejection};
+use crate::{gate::GatedPromise, Promise, PromiseRejection};
 
 impl<T, E> Promise<T, E>
 where
@@ -16,9 +16,7 @@ where
     /// Mirrors ECMAScript's `Promise.any`, with `Vec<E>` in place of
     /// `AggregateError`: rejections appear in input order, and an empty
     /// input rejects immediately with an empty `Vec`. The returned
-    /// [`Promise`] is lazy, and each poll re-polls every still-pending
-    /// input, so driving n independently-woken promises costs O(n²) child
-    /// polls in total.
+    /// [`Promise`] is lazy.
     pub fn any<I>(promises: I) -> Promise<T, Vec<E>>
     where
         I: IntoIterator<Item = Self>,
@@ -43,14 +41,16 @@ where
         let mut is_pending = false;
 
         for promise in &mut this.promises {
-            if promise.poll_pending(cx) {
+            promise.poll(cx);
+
+            if promise.inner.is_pending() {
                 is_pending = true;
 
                 continue;
             }
 
-            if promise.is_resolved() {
-                match promise.consume() {
+            if promise.inner.is_resolved() {
+                match promise.inner.consume() {
                     Some(Ok(val)) => return Ready(Ok(val)),
                     _ => unreachable!("The promise is resolved."),
                 }
@@ -64,7 +64,7 @@ where
         let mut errors = Vec::new();
 
         for promise in &mut this.promises {
-            match promise.consume() {
+            match promise.inner.consume() {
                 Some(Err(err)) => errors.push(err),
                 Some(Ok(_)) => unreachable!("A resolved promise short-circuits above."),
                 None => unreachable!("We checked no Promise is pending."),
@@ -80,7 +80,7 @@ where
     T: Send + 'static,
     E: PromiseRejection,
 {
-    promises: Vec<Promise<T, E>>,
+    promises: Vec<GatedPromise<T, E>>,
 }
 
 impl<I, T, E> From<I> for PromiseAny<T, E>
@@ -91,14 +91,22 @@ where
 {
     fn from(value: I) -> Self {
         Self {
-            promises: value.into_iter().collect(),
+            promises: value.into_iter().map(GatedPromise::new).collect(),
         }
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use std::task::{Context, Waker};
+    use std::{
+        future::Future,
+        pin::Pin,
+        sync::{
+            atomic::{AtomicUsize, Ordering},
+            Arc,
+        },
+        task::{Context, Poll, Waker},
+    };
 
     use crate::{Promise, PromiseRejection, TaskFailure};
 
@@ -164,6 +172,45 @@ mod tests {
         any.poll_settled(&mut cx());
 
         assert_eq!(any.consume(), Some(Ok(2)));
+    }
+
+    /// Inner future that counts its polls and never settles.
+    struct CountPolls {
+        polls: Arc<AtomicUsize>,
+    }
+
+    impl Future for CountPolls {
+        type Output = Result<i32, E>;
+
+        fn poll(self: Pin<&mut Self>, _cx: &mut Context<'_>) -> Poll<Self::Output> {
+            self.polls.fetch_add(1, Ordering::SeqCst);
+
+            Poll::Pending
+        }
+    }
+
+    #[test]
+    fn children_without_a_wakeup_request_are_not_repolled() {
+        let polls = Arc::new(AtomicUsize::new(0));
+
+        let never: Promise<i32, E> = Promise::lazy(CountPolls {
+            polls: polls.clone(),
+        });
+        let (pending, _resolve, reject) = Promise::<i32, E>::with_resolvers();
+
+        let mut any = Promise::any([never, pending]);
+
+        assert!(!any.poll_settled(&mut cx()));
+        assert!(!any.poll_settled(&mut cx()));
+        assert!(!any.poll_settled(&mut cx()));
+
+        assert_eq!(polls.load(Ordering::SeqCst), 1);
+
+        reject.reject(E::Code(1));
+
+        assert!(!any.poll_settled(&mut cx()));
+
+        assert_eq!(polls.load(Ordering::SeqCst), 1);
     }
 
     #[test]
