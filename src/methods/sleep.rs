@@ -8,11 +8,11 @@ where
 {
     /// Resolves with `()` once `duration` has elapsed.
     ///
-    /// Dispatch is selected at compile time based on which runtime features
-    /// are enabled, with a runtime check when `tokio` is on:
+    /// Dispatch is selected at the first poll, based on which runtime
+    /// features are enabled, with a runtime check when `tokio` is on:
     ///
-    /// - `tokio` enabled and called from within a tokio runtime context
-    ///   (detected via `tokio::runtime::Handle::try_current`): uses
+    /// - `tokio` enabled and the first poll occurs within a tokio runtime
+    ///   context (detected via `tokio::runtime::Handle::try_current`): uses
     ///   `tokio::time::sleep`.
     /// - Otherwise, with `smol` enabled: uses `smol::Timer`.
     /// - Otherwise: parks a thread on the `blocking` crate's pool.
@@ -26,28 +26,28 @@ where
     /// runtime's time driver is disabled, propagated from
     /// `tokio::time::sleep`.
     pub fn sleep(duration: Duration) -> Self {
-        #[cfg(feature = "tokio")]
-        if tokio::runtime::Handle::try_current().is_ok() {
-            return Self::lazy(async move {
+        Self::lazy(async move {
+            #[cfg(feature = "tokio")]
+            if tokio::runtime::Handle::try_current().is_ok() {
                 tokio::time::sleep(duration).await;
 
+                return Ok(());
+            }
+
+            #[cfg(feature = "smol")]
+            return {
+                smol::Timer::after(duration).await;
+
                 Ok(())
-            });
-        }
+            };
 
-        #[cfg(feature = "smol")]
-        return Self::lazy(async move {
-            smol::Timer::after(duration).await;
+            #[cfg(not(feature = "smol"))]
+            return {
+                blocking::unblock(move || std::thread::sleep(duration)).await;
 
-            Ok(())
-        });
-
-        #[cfg(not(feature = "smol"))]
-        return Self::lazy(async move {
-            blocking::unblock(move || std::thread::sleep(duration)).await;
-
-            Ok(())
-        });
+                Ok(())
+            };
+        })
     }
 }
 
@@ -88,6 +88,36 @@ mod tests {
         let result = rt.block_on(async { Promise::<(), E>::sleep(NAP).await });
 
         assert_eq!(result, Ok(()));
+        assert!(start.elapsed() >= NAP);
+    }
+
+    /// The timer is selected at the first poll, not at construction: a
+    /// promise constructed inside a tokio runtime context but polled outside
+    /// of one must fall back to a portable timer instead of panicking in
+    /// `tokio::time::sleep`.
+    #[cfg(feature = "tokio")]
+    #[test]
+    fn selects_the_timer_at_first_poll() {
+        use std::task::{Context, Waker};
+
+        let rt = tokio::runtime::Builder::new_current_thread()
+            .enable_time()
+            .build()
+            .expect("build current-thread tokio runtime");
+
+        let mut promise = {
+            let _guard = rt.enter();
+
+            Promise::<(), E>::sleep(NAP)
+        };
+
+        let mut cx = Context::from_waker(Waker::noop());
+
+        let start = Instant::now();
+
+        while !promise.poll_settled(&mut cx) {}
+
+        assert_eq!(promise.consume(), Some(Ok(())));
         assert!(start.elapsed() >= NAP);
     }
 
