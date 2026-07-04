@@ -38,11 +38,9 @@ where
     /// - A poll-driven promise (the default, such as [`Promise::lazy`]) makes
     ///   progress only while polled, so dropping it halts the work at its last
     ///   `.await`. This is genuine cancellation.
-    /// - An `eager_with_smol` promise holds a cancel-on-drop `smol::Task`, so
-    ///   its spawned future is cancelled.
-    /// - An `eager_with_tokio` promise holds a detached `tokio` task. Aborting
-    ///   abandons the result, but the task runs to completion; the work is not
-    ///   stopped.
+    /// - An eager promise (`eager_with_tokio` or `eager_with_smol`) holds a
+    ///   detached task. Aborting abandons the result, but the spawned future
+    ///   runs to completion; the work is not stopped.
     /// - [`Promise::unblock`] work runs a blocking closure on a thread pool. A
     ///   closure that has already started cannot be interrupted, so aborting
     ///   abandons the result while the closure runs to completion.

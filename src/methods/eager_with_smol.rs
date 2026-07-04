@@ -14,11 +14,22 @@ where
     /// global executor. The outer [`Promise`] must still be polled (or
     /// awaited) to receive the outcome.
     ///
-    /// The spawned future is cancelled if the returned [`Promise`] is dropped
-    /// before completion: smol's [`Task`](smol::Task) is cancel-on-drop,
-    /// unlike the detached `JoinHandle` produced by `Promise::eager_with_tokio`.
+    /// The spawned future runs to completion even if the returned [`Promise`]
+    /// is dropped or never polled; the outcome is then discarded.
     pub fn eager_with_smol(future: impl Future<Output = Result<T, E>> + Send + 'static) -> Self {
-        Self::eager_with(future, smol::spawn)
+        Self::eager_with(future, |promise| {
+            let (relay, resolve, reject) = Self::with_resolvers();
+
+            smol::spawn(async move {
+                match promise.await {
+                    Ok(value) => resolve.resolve(value),
+                    Err(rejection) => reject.reject(rejection),
+                }
+            })
+            .detach();
+
+            relay
+        })
     }
 }
 
@@ -77,6 +88,36 @@ mod tests {
             }
             other => panic!("expected Err(TaskFailed(Panic(_))), got {other:?}"),
         }
+    }
+
+    /// Dropping the outer [`Promise`] abandons the outcome but must not
+    /// cancel the spawned future, mirroring ECMAScript promise semantics.
+    #[test]
+    #[allow(clippy::expect_used)]
+    fn dropped_promise_leaves_the_task_running() {
+        let (start_tx, start_rx) = async_channel::bounded::<()>(1);
+        let (done_tx, done_rx) = async_channel::bounded::<()>(1);
+
+        let promise = Promise::<i32, E>::eager_with_smol(async move {
+            start_rx.recv().await.ok();
+            done_tx.send(()).await.ok();
+
+            Ok(0)
+        });
+
+        drop(promise);
+
+        smol::block_on(async move {
+            start_tx
+                .send(())
+                .await
+                .expect("the spawned task must still be listening");
+
+            done_rx
+                .recv()
+                .await
+                .expect("the spawned task must run to completion");
+        });
     }
 
     #[test]
