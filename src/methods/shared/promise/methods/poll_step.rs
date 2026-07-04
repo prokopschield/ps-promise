@@ -14,7 +14,7 @@ where
     T: Clone + Send + 'static,
     E: PromiseRejection + Clone,
 {
-    /// Equvalent to `Poll::Pending`
+    /// Equivalent to `Poll::Pending`
     Pending,
     /// Equivalent to `Poll::Ready(Ok(T))`
     Resolved(T),
@@ -59,7 +59,7 @@ where
                 // Path is reachable:
                 // let mut p = Promise::resolve(123);
                 // p.consume();
-                // p.share().poll(cx);
+                // p.shared().poll(cx);
             } else if inner.is_failed() {
                 // Task failures are repeat-consumable: consuming converts the
                 // stored failure through E::task_failed while leaving it in
@@ -70,7 +70,7 @@ where
             }
         } else {
             // another executor thread is in the process of executing the underlying Promise
-            // or recursion has occured
+            // or recursion has occurred
             // either way, keep the waker and bail!
             self.state.add_waker(self.waiter_id, cx.waker());
 
