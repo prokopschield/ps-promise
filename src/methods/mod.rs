@@ -29,6 +29,7 @@ mod is_settled;
 mod lazy;
 mod map;
 mod map_err;
+mod new;
 mod peek;
 mod poll;
 mod poll_pending;
