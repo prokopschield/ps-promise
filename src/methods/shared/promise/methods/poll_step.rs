@@ -128,6 +128,11 @@ where
         // exit critical section
         drop(guard);
 
+        // The driver is about to observe the settled result via ReEnter, so
+        // drop its own registration first: the fan-out would otherwise
+        // schedule a spurious re-poll of a task that is returning Ready.
+        self.state.remove_waker(self.waiter_id);
+
         // wake every remaining waker
         // lock ordering: we're only acquiring one lock, and the promise is already in place
         shared_waker.wake();
@@ -272,13 +277,15 @@ mod tests {
         // (fanning out to `task_waker`) and returns `Pending`. So when the driver
         // re-checks, `is_settled == false` even though `shared_waker` already fired
         // within this single drive: exactly the `!is_settled && woken-during-drive`
-        // state, reached deterministically on one thread.
+        // state, reached deterministically on one thread. Exactly one wake: the
+        // completion fan-out deregisters the driver first, so no spurious second
+        // wake arrives.
         let first = poll_with(&mut shared, &task_waker);
 
         assert!(first.is_ready());
         assert_eq!(
             waker.count.load(Ordering::Relaxed),
-            2,
+            1,
             "shared_waker must have fired during the pending drive"
         );
 
