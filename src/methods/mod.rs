@@ -50,7 +50,7 @@ mod with_resolvers;
 mod wrap;
 mod zip;
 
-pub use abortable::{AbortHandle, Aborted, PromiseAborted, PromiseSettled};
+pub use abortable::{AbortHandle, PromiseAborted, PromiseSettled};
 pub use shared::SharedPromise;
 pub use timeout::TimeoutError;
 pub use with_resolvers::{Reject, Resolve, ResolversDropped};

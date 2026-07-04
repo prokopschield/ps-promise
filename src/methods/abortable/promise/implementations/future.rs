@@ -1,14 +1,13 @@
 use std::{
     future::Future,
     pin::Pin,
-    sync::Arc,
     task::{
         Context,
         Poll::{self, Pending, Ready},
     },
 };
 
-use crate::{Aborted, PromiseRejection, TaskFailure};
+use crate::{PromiseRejection, TaskFailure};
 
 use super::super::AbortablePromise;
 
@@ -19,7 +18,7 @@ where
     type Output = Result<T, E>;
 
     fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
-        let aborted = || Ready(Err(E::task_failed(TaskFailure::Error(Arc::new(Aborted)))));
+        let aborted = || Ready(Err(E::task_failed(TaskFailure::Aborted)));
         let this = self.get_mut();
 
         this.receiver.poll(cx);

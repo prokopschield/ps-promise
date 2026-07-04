@@ -1,7 +1,8 @@
 /// Best-effort success hint from [`AbortHandle::abort`](crate::AbortHandle::abort).
 ///
 /// An abort request appears to be live, so a still-pending promise is expected
-/// to reject with [`Aborted`](crate::Aborted) on its next poll. Like all of
+/// to reject with [`TaskFailure::Aborted`](crate::TaskFailure::Aborted) on its
+/// next poll. Like all of
 /// [`AbortHandle::abort`](crate::AbortHandle::abort)'s output, this is advisory
 /// rather than authoritative under concurrent settlement.
 #[derive(Debug, Clone, Copy, Default, Hash, PartialEq, Eq, PartialOrd, Ord)]

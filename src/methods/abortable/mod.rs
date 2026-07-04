@@ -1,4 +1,3 @@
-mod aborted;
 mod handle;
 mod outcome;
 mod promise;
@@ -7,7 +6,6 @@ use promise::AbortablePromise;
 
 use crate::{Promise, PromiseRejection};
 
-pub use aborted::Aborted;
 pub use handle::AbortHandle;
 pub use outcome::{PromiseAborted, PromiseSettled};
 
@@ -24,8 +22,8 @@ where
     /// visible on a poll it takes precedence, so the promise rejects even if
     /// the underlying promise is simultaneously settled; but an abort that
     /// arrives after the promise has already settled simply has no effect. On
-    /// abort the promise rejects with [`Aborted`] wrapped in
-    /// [`TaskFailure::Error`](crate::TaskFailure::Error), mapped through
+    /// abort the promise rejects with
+    /// [`TaskFailure::Aborted`](crate::TaskFailure::Aborted), mapped through
     /// [`PromiseRejection::task_failed`]. The handle is clonable, so any clone
     /// may abort, and [`AbortHandle::abort`]'s return value is only a hint, as
     /// described on that method. Dropping every handle without aborting has no
@@ -70,11 +68,12 @@ mod tests {
         task::{Context, Poll, Wake, Waker},
     };
 
-    use super::{Aborted, PromiseAborted, PromiseSettled};
+    use super::{PromiseAborted, PromiseSettled};
     use crate::{Promise, PromiseRejection, TaskFailure};
 
     #[derive(Debug, PartialEq)]
     enum E {
+        Aborted,
         AlreadyConsumed,
         TaskFailed,
     }
@@ -84,8 +83,11 @@ mod tests {
             Self::AlreadyConsumed
         }
 
-        fn task_failed(_: TaskFailure) -> Self {
-            Self::TaskFailed
+        fn task_failed(failure: TaskFailure) -> Self {
+            match failure {
+                TaskFailure::Aborted => Self::Aborted,
+                _ => Self::TaskFailed,
+            }
         }
     }
 
@@ -144,7 +146,7 @@ mod tests {
         assert_eq!(handle.abort(), Ok(PromiseAborted));
 
         assert!(promise.poll_settled(&mut cx()));
-        assert_eq!(promise.consume(), Some(Err(E::TaskFailed)));
+        assert_eq!(promise.consume(), Some(Err(E::Aborted)));
     }
 
     /// A redundant abort, before the first one is observed, still reports the
@@ -157,7 +159,7 @@ mod tests {
         assert_eq!(handle.abort(), Ok(PromiseAborted));
 
         assert!(promise.poll_settled(&mut cx()));
-        assert_eq!(promise.consume(), Some(Err(E::TaskFailed)));
+        assert_eq!(promise.consume(), Some(Err(E::Aborted)));
     }
 
     #[test]
@@ -189,7 +191,7 @@ mod tests {
         assert_eq!(clone.abort(), Ok(PromiseAborted));
 
         assert!(promise.poll_settled(&mut cx()));
-        assert_eq!(promise.consume(), Some(Err(E::TaskFailed)));
+        assert_eq!(promise.consume(), Some(Err(E::Aborted)));
     }
 
     /// Once the underlying promise has settled and been observed, a later
@@ -217,7 +219,7 @@ mod tests {
         assert_eq!(handle.abort(), Ok(PromiseAborted));
 
         assert!(promise.poll_settled(&mut cx()));
-        assert_eq!(promise.consume(), Some(Err(E::TaskFailed)));
+        assert_eq!(promise.consume(), Some(Err(E::Aborted)));
     }
 
     /// Aborting drops the underlying future, cancelling poll-driven work.
@@ -245,7 +247,7 @@ mod tests {
 
     #[test]
     fn aborted_error_message() {
-        assert_eq!(Aborted.to_string(), "Promise was aborted.");
+        assert_eq!(TaskFailure::Aborted.to_string(), "promise aborted");
     }
 
     /// An abort arriving while the promise is pending wakes the parked task,
@@ -269,7 +271,7 @@ mod tests {
         );
 
         assert!(promise.poll_settled(&mut cx));
-        assert_eq!(promise.consume(), Some(Err(E::TaskFailed)));
+        assert_eq!(promise.consume(), Some(Err(E::Aborted)));
     }
 
     /// Once an abort has been observed and the promise has rejected, a later
@@ -280,7 +282,7 @@ mod tests {
 
         assert_eq!(handle.abort(), Ok(PromiseAborted));
         assert!(promise.poll_settled(&mut cx()));
-        assert_eq!(promise.consume(), Some(Err(E::TaskFailed)));
+        assert_eq!(promise.consume(), Some(Err(E::Aborted)));
         assert_eq!(handle.abort(), Err(PromiseSettled));
     }
 

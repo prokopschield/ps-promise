@@ -7,8 +7,8 @@ impl AbortHandle {
     ///
     /// Aborting is a suggestion, not a command. The request is lodged
     /// unconditionally, and a promise that is still pending when next polled
-    /// rejects with [`Aborted`](crate::Aborted), wrapped in
-    /// [`TaskFailure::Error`](crate::TaskFailure::Error) and mapped through
+    /// rejects with [`TaskFailure::Aborted`](crate::TaskFailure::Aborted),
+    /// mapped through
     /// [`PromiseRejection::task_failed`](crate::PromiseRejection::task_failed).
     /// A promise that has already settled is unaffected: the request simply
     /// arrives too late.

@@ -14,8 +14,13 @@ use thiserror::Error;
 #[derive(Clone, Error)]
 #[non_exhaustive]
 pub enum TaskFailure {
-    /// The task failed with an error, such as a timeout, an abort, or
-    /// dropped resolver handles.
+    /// The task was aborted through an
+    /// [`AbortHandle`](crate::AbortHandle).
+    #[error("promise aborted")]
+    Aborted,
+
+    /// The task failed with an error, such as a timeout or dropped resolver
+    /// handles.
     #[error(transparent)]
     Error(Arc<dyn Error + Send + Sync + 'static>),
 
