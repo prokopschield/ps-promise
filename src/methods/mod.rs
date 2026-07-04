@@ -43,6 +43,7 @@ mod resolve;
 mod shared;
 mod sleep;
 mod then;
+mod then_catch;
 mod timeout;
 mod unblock;
 mod with_resolvers;
