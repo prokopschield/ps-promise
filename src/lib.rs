@@ -88,3 +88,8 @@ pub(crate) enum State<T, E> {
     Consumed,
     Failed(TaskFailure),
 }
+
+/// The README's example, compiled as a doc-test.
+#[cfg(doctest)]
+#[doc = include_str!("../README.md")]
+struct ReadmeDoctests;
