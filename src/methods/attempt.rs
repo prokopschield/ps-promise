@@ -13,7 +13,8 @@ where
     /// synchronously during this call, and the returned [`Promise`] is
     /// already settled. `Ok` resolves the promise, `Err` rejects it, and a
     /// panic is caught and rejects it with [`TaskFailure::Panic`] mapped
-    /// through [`PromiseRejection::task_failed`].
+    /// through [`PromiseRejection::task_failed`]. See
+    /// [`Promise::attempt_async`] for async closures.
     pub fn attempt<F>(f: F) -> Self
     where
         F: FnOnce() -> Result<T, E>,
