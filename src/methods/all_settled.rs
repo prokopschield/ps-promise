@@ -68,7 +68,7 @@ where
     }
 }
 
-pub struct PromiseAllSettled<T, E>
+struct PromiseAllSettled<T, E>
 where
     T: Send + 'static,
     E: PromiseRejection,

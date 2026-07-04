@@ -75,7 +75,7 @@ where
     }
 }
 
-pub struct PromiseAny<T, E>
+struct PromiseAny<T, E>
 where
     T: Send + 'static,
     E: PromiseRejection,

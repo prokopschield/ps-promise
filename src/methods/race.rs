@@ -47,7 +47,7 @@ where
     }
 }
 
-pub struct PromiseRace<T, E>
+struct PromiseRace<T, E>
 where
     T: Send + 'static,
     E: PromiseRejection,
