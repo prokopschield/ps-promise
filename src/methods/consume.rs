@@ -8,6 +8,11 @@ where
 {
     /// If settled, consumes and returns the result.
     /// Returns `None` if still pending.
+    ///
+    /// Consuming again yields [`PromiseRejection::already_consumed`]. A task
+    /// failure is the exception: the failure is cloned and left in place, so
+    /// the promise never becomes consumed and every consumption yields the
+    /// failure anew through [`PromiseRejection::task_failed`].
     pub fn consume(&mut self) -> Option<Result<T, E>> {
         match replace(&mut self.state, State::Consumed) {
             State::Resolved(val) => Some(Ok(val)),

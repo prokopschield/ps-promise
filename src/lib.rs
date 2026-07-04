@@ -6,9 +6,10 @@
 //! [`Promise::is_rejected`]), polled manually ([`Promise::poll`],
 //! [`Promise::poll_sync`]), consumed ([`Promise::consume`]), or awaited.
 //! Awaiting consumes the result; consuming a second time yields
-//! [`PromiseRejection::already_consumed`]. For a promise that can be awaited
-//! any number of times, like its ECMAScript counterpart, see
-//! [`Promise::shared`].
+//! [`PromiseRejection::already_consumed`], except for task failures, which
+//! replay through [`PromiseRejection::task_failed`] on every consumption.
+//! For a promise that can be awaited any number of times, like its
+//! ECMAScript counterpart, see [`Promise::shared`].
 //!
 //! The ECMAScript promise API maps onto:
 //!
