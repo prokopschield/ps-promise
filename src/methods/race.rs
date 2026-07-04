@@ -7,7 +7,8 @@ where
     T: Send + 'static,
     E: PromiseRejection,
 {
-    /// Settles with the outcome of the first promise to settle.
+    /// Settles with the first settled outcome it observes; the input
+    /// promises are polled in order.
     ///
     /// Mirrors ECMAScript's `Promise.race`, including its footgun: a race
     /// over an empty input is forever pending, and awaiting it parks the
