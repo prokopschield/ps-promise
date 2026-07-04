@@ -11,12 +11,12 @@ where
     /// asynchronous recovery onto the rejection.
     ///
     /// Mirrors ECMAScript's two-argument `then`: exactly one of the
-    /// callbacks runs, and its outcome settles the returned promise. Unlike
+    /// closures runs, and its outcome settles the returned promise. Unlike
     /// `.then(on_fulfilled).catch(on_rejected)`, `on_rejected` does not
     /// observe failures produced by `on_fulfilled`; a rejection returned by
     /// `on_fulfilled`, or a panic in it, rejects the returned promise
     /// directly (a panic via [`PromiseRejection::task_failed`]). Since both
-    /// branches supply a callback, neither `TO` nor `EO` needs a `From`
+    /// branches supply a closure, neither `TO` nor `EO` needs a `From`
     /// conversion. The returned promise is scheduled via
     /// [`Promise::eager_or_lazy`].
     pub fn then_catch<TO, EO, F, FFut, R, RFut>(
@@ -115,7 +115,7 @@ mod tests {
     }
 
     #[test]
-    fn fulfillment_runs_the_first_callback() {
+    fn fulfillment_runs_the_first_closure() {
         let result = drive(|| {
             Promise::<i32, E>::resolve(6).then_catch(
                 |v| async move { Ok::<String, EO>((v * 7).to_string()) },
@@ -127,7 +127,7 @@ mod tests {
     }
 
     #[test]
-    fn rejection_runs_the_second_callback() {
+    fn rejection_runs_the_second_closure() {
         let result = drive(|| {
             Promise::<i32, E>::reject(E::Fail).then_catch(
                 |v| async move { Ok::<i32, EO>(v) },

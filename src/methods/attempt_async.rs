@@ -13,7 +13,7 @@ where
     /// Calls a closure returning a [`Future`] and captures the outcome in a
     /// [`Promise`].
     ///
-    /// Extends [`Promise::attempt`] to async callbacks, completing the analog
+    /// Extends [`Promise::attempt`] to async closures, completing the analog
     /// of ECMAScript's `Promise.try`: the closure is invoked synchronously
     /// during this call; a panic in the closure is caught and rejects the
     /// promise with [`TaskFailure::Panic`] mapped through

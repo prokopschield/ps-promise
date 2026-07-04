@@ -7,10 +7,10 @@ where
     T: Send + 'static,
     E: PromiseRejection,
 {
-    /// Runs a callback once this [`Promise`] settles, regardless of outcome,
+    /// Runs a closure once this [`Promise`] settles, regardless of outcome,
     /// then passes the settled result through.
     ///
-    /// Mirrors ECMAScript's `Promise.prototype.finally`: the callback receives
+    /// Mirrors ECMAScript's `Promise.prototype.finally`: the closure receives
     /// no arguments and cannot alter a resolved value, but if its future
     /// rejects, that rejection takes precedence over the original outcome.
     pub fn finally<F, Fut>(self, f: F) -> Self
@@ -83,7 +83,7 @@ mod tests {
     }
 
     #[test]
-    fn runs_callback_on_resolution() {
+    fn runs_closure_on_resolution() {
         let called = Arc::new(AtomicBool::new(false));
         let flag = called.clone();
 
@@ -99,7 +99,7 @@ mod tests {
     }
 
     #[test]
-    fn runs_callback_on_rejection() {
+    fn runs_closure_on_rejection() {
         let called = Arc::new(AtomicBool::new(false));
         let flag = called.clone();
 
@@ -115,14 +115,14 @@ mod tests {
     }
 
     #[test]
-    fn callback_rejection_overrides_resolution() {
+    fn closure_rejection_overrides_resolution() {
         let result = drive(|| Promise::<i32, E>::resolve(42).finally(|| async { Err(E::Fail) }));
 
         assert_eq!(result, Err(E::Fail));
     }
 
     #[test]
-    fn callback_rejection_overrides_original_rejection() {
+    fn closure_rejection_overrides_original_rejection() {
         let result = drive(|| {
             Promise::<i32, E>::reject(E::AlreadyConsumed).finally(|| async { Err(E::Fail) })
         });

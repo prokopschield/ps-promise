@@ -5,10 +5,10 @@ where
     T: Send + 'static,
     E: PromiseRejection,
 {
-    /// Runs a callback with a reference to the resolved value, then passes
+    /// Runs a closure with a reference to the resolved value, then passes
     /// the result through unchanged.
     ///
-    /// The callback is not invoked on rejection; see [`Promise::inspect_err`].
+    /// The closure is not invoked on rejection; see [`Promise::inspect_err`].
     pub fn inspect<F>(self, f: F) -> Self
     where
         F: FnOnce(&T) + Send + 'static,

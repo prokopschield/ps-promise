@@ -5,10 +5,10 @@ where
     T: Send + 'static,
     E: PromiseRejection,
 {
-    /// Runs a callback with a reference to the rejection, then passes the
+    /// Runs a closure with a reference to the rejection, then passes the
     /// result through unchanged.
     ///
-    /// The callback is not invoked on resolution; see [`Promise::inspect`].
+    /// The closure is not invoked on resolution; see [`Promise::inspect`].
     pub fn inspect_err<F>(self, f: F) -> Self
     where
         F: FnOnce(&E) + Send + 'static,

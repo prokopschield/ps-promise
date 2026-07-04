@@ -6,7 +6,7 @@ impl<T, E> Promise<T, E> {
     /// the corresponding rejection value is constructed only upon consumption.
     ///
     /// Unlike [`Promise::consume`], this leaves the promise untouched; see also
-    /// [`Promise::inspect`] for a callback-based alternative.
+    /// [`Promise::inspect`] for a closure-based alternative.
     pub const fn peek(&self) -> Option<Result<&T, &E>> {
         match &self.state {
             State::Resolved(val) => Some(Ok(val)),
