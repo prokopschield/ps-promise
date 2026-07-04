@@ -12,6 +12,7 @@ use thiserror::Error;
 /// [`PromiseRejection::task_failed`](crate::PromiseRejection::task_failed)
 /// so the rejection type can represent the failure.
 #[derive(Clone, Error)]
+#[non_exhaustive]
 pub enum TaskFailure {
     /// The task failed with an error, such as a timeout, an abort, or
     /// dropped resolver handles.
