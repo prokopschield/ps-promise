@@ -43,7 +43,7 @@ where
         let mut is_pending = false;
 
         for promise in &mut this.promises {
-            if promise.pending(cx) {
+            if promise.poll_pending(cx) {
                 is_pending = true;
 
                 continue;
@@ -130,7 +130,7 @@ mod tests {
     fn empty() {
         let mut all: Promise<(), Vec<E>> = Promise::any([]);
 
-        all.settle(&mut cx());
+        all.poll_settled(&mut cx());
 
         match all.consume() {
             Some(Err(v)) => assert!(v.is_empty(), "Result vector is not empty!"),
@@ -146,7 +146,7 @@ mod tests {
             Promise::lazy(async { Err(E::Code(3)) }),
         ]);
 
-        all.settle(&mut cx());
+        all.poll_settled(&mut cx());
 
         match all.consume() {
             Some(Ok(v)) => assert_eq!(v, 2),
@@ -161,7 +161,7 @@ mod tests {
             Promise::lazy(async { Ok(2) }),
         ]);
 
-        any.settle(&mut cx());
+        any.poll_settled(&mut cx());
 
         assert_eq!(any.consume(), Some(Ok(2)));
     }
@@ -174,7 +174,7 @@ mod tests {
             Promise::lazy(async { Err(E::Code(3)) }),
         ]);
 
-        all.settle(&mut cx());
+        all.poll_settled(&mut cx());
 
         match all.consume() {
             Some(Err(v)) => assert_eq!(v, [1, 2, 3].map(E::Code)),

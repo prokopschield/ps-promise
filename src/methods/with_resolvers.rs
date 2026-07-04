@@ -314,7 +314,7 @@ mod tests {
         let (mut promise, resolve, _reject) = Promise::<i32, E>::with_resolvers();
 
         resolve.resolve(42);
-        promise.settle(&mut cx());
+        promise.poll_settled(&mut cx());
 
         assert_eq!(promise.consume(), Some(Ok(42)));
     }
@@ -324,7 +324,7 @@ mod tests {
         let (mut promise, _resolve, reject) = Promise::<i32, E>::with_resolvers();
 
         reject.reject(E::Fail);
-        promise.settle(&mut cx());
+        promise.poll_settled(&mut cx());
 
         assert_eq!(promise.consume(), Some(Err(E::Fail)));
     }
@@ -333,11 +333,11 @@ mod tests {
     fn pending_until_settled() {
         let (mut promise, resolve, _reject) = Promise::<i32, E>::with_resolvers();
 
-        assert!(promise.pending(&mut cx()));
+        assert!(promise.poll_pending(&mut cx()));
 
         resolve.resolve(7);
 
-        assert!(promise.settle(&mut cx()));
+        assert!(promise.poll_settled(&mut cx()));
         assert_eq!(promise.consume(), Some(Ok(7)));
     }
 
@@ -347,7 +347,7 @@ mod tests {
 
         resolve.resolve(1);
         reject.reject(E::Fail);
-        promise.settle(&mut cx());
+        promise.poll_settled(&mut cx());
 
         assert_eq!(promise.consume(), Some(Ok(1)));
     }
@@ -358,7 +358,7 @@ mod tests {
 
         drop(resolve);
         drop(reject);
-        promise.settle(&mut cx());
+        promise.poll_settled(&mut cx());
 
         assert_eq!(promise.consume(), Some(Err(resolvers_dropped())));
     }
@@ -369,7 +369,7 @@ mod tests {
 
         resolve.resolve(9);
         drop(reject);
-        promise.settle(&mut cx());
+        promise.poll_settled(&mut cx());
 
         assert_eq!(promise.consume(), Some(Ok(9)));
     }
@@ -384,7 +384,7 @@ mod tests {
         drop(reject);
 
         clone.resolve(3);
-        promise.settle(&mut cx());
+        promise.poll_settled(&mut cx());
 
         assert_eq!(promise.consume(), Some(Ok(3)));
     }
@@ -397,7 +397,7 @@ mod tests {
 
         clone.resolve(1);
         resolve.resolve(2);
-        promise.settle(&mut cx());
+        promise.poll_settled(&mut cx());
 
         assert_eq!(promise.consume(), Some(Ok(1)));
     }
@@ -411,10 +411,10 @@ mod tests {
         drop(resolve);
         drop(reject);
 
-        assert!(promise.pending(&mut cx()));
+        assert!(promise.poll_pending(&mut cx()));
 
         clone.reject(E::Fail);
-        promise.settle(&mut cx());
+        promise.poll_settled(&mut cx());
 
         assert_eq!(promise.consume(), Some(Err(E::Fail)));
     }
@@ -429,11 +429,11 @@ mod tests {
         drop(resolve);
         drop(reject);
 
-        assert!(promise.pending(&mut cx()));
+        assert!(promise.poll_pending(&mut cx()));
 
         drop(resolve_clone);
         drop(reject_clone);
-        promise.settle(&mut cx());
+        promise.poll_settled(&mut cx());
 
         assert_eq!(promise.consume(), Some(Err(resolvers_dropped())));
     }
@@ -452,14 +452,14 @@ mod tests {
 
         let (counter, waker) = counting_waker();
 
-        assert!(promise.pending(&mut Context::from_waker(&waker)));
+        assert!(promise.poll_pending(&mut Context::from_waker(&waker)));
         assert_eq!(counter.count.load(Ordering::SeqCst), 0);
 
         resolve.resolve(8);
 
         assert_eq!(counter.count.load(Ordering::SeqCst), 1);
 
-        assert!(promise.settle(&mut cx()));
+        assert!(promise.poll_settled(&mut cx()));
         assert_eq!(promise.consume(), Some(Ok(8)));
     }
 
@@ -469,14 +469,14 @@ mod tests {
 
         let (counter, waker) = counting_waker();
 
-        assert!(promise.pending(&mut Context::from_waker(&waker)));
+        assert!(promise.poll_pending(&mut Context::from_waker(&waker)));
         assert_eq!(counter.count.load(Ordering::SeqCst), 0);
 
         reject.reject(E::Fail);
 
         assert_eq!(counter.count.load(Ordering::SeqCst), 1);
 
-        assert!(promise.settle(&mut cx()));
+        assert!(promise.poll_settled(&mut cx()));
         assert_eq!(promise.consume(), Some(Err(E::Fail)));
     }
 
@@ -486,7 +486,7 @@ mod tests {
 
         let (counter, waker) = counting_waker();
 
-        assert!(promise.pending(&mut Context::from_waker(&waker)));
+        assert!(promise.poll_pending(&mut Context::from_waker(&waker)));
 
         drop(resolve);
 
@@ -496,7 +496,7 @@ mod tests {
 
         assert_eq!(counter.count.load(Ordering::SeqCst), 1);
 
-        assert!(promise.settle(&mut cx()));
+        assert!(promise.poll_settled(&mut cx()));
         assert_eq!(promise.consume(), Some(Err(resolvers_dropped())));
     }
 
@@ -510,15 +510,15 @@ mod tests {
         let (counter_a, waker_a) = counting_waker();
         let (counter_b, waker_b) = counting_waker();
 
-        assert!(promise.pending(&mut Context::from_waker(&waker_a)));
-        assert!(promise.pending(&mut Context::from_waker(&waker_b)));
+        assert!(promise.poll_pending(&mut Context::from_waker(&waker_a)));
+        assert!(promise.poll_pending(&mut Context::from_waker(&waker_b)));
 
         resolve.resolve(4);
 
         assert_eq!(counter_a.count.load(Ordering::SeqCst), 0);
         assert_eq!(counter_b.count.load(Ordering::SeqCst), 1);
 
-        assert!(promise.settle(&mut cx()));
+        assert!(promise.poll_settled(&mut cx()));
         assert_eq!(promise.consume(), Some(Ok(4)));
     }
 
@@ -528,7 +528,7 @@ mod tests {
 
         let (counter, waker) = counting_waker();
 
-        assert!(promise.pending(&mut Context::from_waker(&waker)));
+        assert!(promise.poll_pending(&mut Context::from_waker(&waker)));
 
         thread::spawn(move || resolve.resolve(21))
             .join()
@@ -536,7 +536,7 @@ mod tests {
 
         assert!(counter.count.load(Ordering::SeqCst) >= 1);
 
-        assert!(promise.settle(&mut cx()));
+        assert!(promise.poll_settled(&mut cx()));
         assert_eq!(promise.consume(), Some(Ok(21)));
     }
 

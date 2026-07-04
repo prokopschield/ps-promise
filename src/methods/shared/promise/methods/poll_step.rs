@@ -101,7 +101,7 @@ where
         self.state.woke.store(false, Ordering::Relaxed);
 
         // Call inner Promise (no lock is held)
-        let is_settled = inner.settle(&mut shared_cx);
+        let is_settled = inner.poll_settled(&mut shared_cx);
 
         // Critical section: re-acquire inner promise lock
         let mut guard = self

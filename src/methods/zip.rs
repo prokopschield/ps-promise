@@ -56,8 +56,8 @@ where
     ) -> std::task::Poll<Self::Output> {
         let this = self.get_mut();
 
-        let left_pending = this.left.pending(cx);
-        let right_pending = this.right.pending(cx);
+        let left_pending = this.left.poll_pending(cx);
+        let right_pending = this.right.poll_pending(cx);
 
         if this.left.is_rejected() {
             match this.left.consume() {
@@ -130,7 +130,7 @@ mod tests {
 
         let mut zipped = left.zip(right);
 
-        zipped.settle(&mut cx());
+        zipped.poll_settled(&mut cx());
 
         assert_eq!(zipped.consume(), Some(Ok((1, "a"))));
     }
@@ -142,7 +142,7 @@ mod tests {
 
         let mut zipped = left.zip(right);
 
-        zipped.settle(&mut cx());
+        zipped.poll_settled(&mut cx());
 
         assert_eq!(zipped.consume(), Some(Err(E::Code(1))));
     }
@@ -154,7 +154,7 @@ mod tests {
 
         let mut zipped = left.zip(right);
 
-        zipped.settle(&mut cx());
+        zipped.poll_settled(&mut cx());
 
         assert_eq!(zipped.consume(), Some(Err(E::Code(2))));
     }
@@ -167,7 +167,7 @@ mod tests {
 
         let mut zipped = a.zip(b).zip(c);
 
-        zipped.settle(&mut cx());
+        zipped.poll_settled(&mut cx());
 
         assert_eq!(zipped.consume(), Some(Ok(((1, "b"), true))));
     }
@@ -179,7 +179,7 @@ mod tests {
 
         let mut zipped = left.zip(right);
 
-        zipped.settle(&mut cx());
+        zipped.poll_settled(&mut cx());
 
         assert_eq!(zipped.consume(), Some(Err(E::Code(2))));
     }
@@ -191,10 +191,10 @@ mod tests {
 
         let mut zipped = left.zip(right);
 
-        zipped.settle(&mut cx());
+        zipped.poll_settled(&mut cx());
         assert_eq!(zipped.consume(), Some(Ok((1, 2))));
 
-        zipped.settle(&mut cx());
+        zipped.poll_settled(&mut cx());
         assert_eq!(zipped.consume(), Some(Err(E::AlreadyConsumed)));
     }
 }

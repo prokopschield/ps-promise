@@ -111,7 +111,7 @@ mod tests {
 
         let start = Instant::now();
 
-        while !promise.settle(&mut cx) {}
+        while !promise.poll_settled(&mut cx) {}
 
         assert_eq!(promise.consume(), Some(Ok(())));
         assert!(start.elapsed() >= NAP);

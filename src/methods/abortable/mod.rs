@@ -139,11 +139,11 @@ mod tests {
     fn abort_rejects_pending_promise() {
         let (mut promise, handle) = pending_promise().abortable();
 
-        assert!(promise.pending(&mut cx()));
+        assert!(promise.poll_pending(&mut cx()));
 
         assert_eq!(handle.abort(), Ok(PromiseAborted));
 
-        assert!(promise.settle(&mut cx()));
+        assert!(promise.poll_settled(&mut cx()));
         assert_eq!(promise.consume(), Some(Err(E::TaskFailed)));
     }
 
@@ -156,7 +156,7 @@ mod tests {
         assert_eq!(handle.abort(), Ok(PromiseAborted));
         assert_eq!(handle.abort(), Ok(PromiseAborted));
 
-        assert!(promise.settle(&mut cx()));
+        assert!(promise.poll_settled(&mut cx()));
         assert_eq!(promise.consume(), Some(Err(E::TaskFailed)));
     }
 
@@ -164,7 +164,7 @@ mod tests {
     fn resolves_when_not_aborted() {
         let (mut promise, _handle) = Promise::<i32, E>::resolve(42).abortable();
 
-        assert!(promise.settle(&mut cx()));
+        assert!(promise.poll_settled(&mut cx()));
         assert_eq!(promise.consume(), Some(Ok(42)));
     }
 
@@ -174,8 +174,8 @@ mod tests {
 
         drop(handle);
 
-        assert!(promise.pending(&mut cx()));
-        assert!(promise.pending(&mut cx()));
+        assert!(promise.poll_pending(&mut cx()));
+        assert!(promise.poll_pending(&mut cx()));
     }
 
     #[test]
@@ -188,7 +188,7 @@ mod tests {
 
         assert_eq!(clone.abort(), Ok(PromiseAborted));
 
-        assert!(promise.settle(&mut cx()));
+        assert!(promise.poll_settled(&mut cx()));
         assert_eq!(promise.consume(), Some(Err(E::TaskFailed)));
     }
 
@@ -199,7 +199,7 @@ mod tests {
     fn settlement_wins_over_later_abort() {
         let (mut promise, handle) = Promise::<i32, E>::resolve(5).abortable();
 
-        assert!(promise.settle(&mut cx()));
+        assert!(promise.poll_settled(&mut cx()));
 
         assert_eq!(handle.abort(), Err(PromiseSettled));
 
@@ -216,7 +216,7 @@ mod tests {
 
         assert_eq!(handle.abort(), Ok(PromiseAborted));
 
-        assert!(promise.settle(&mut cx()));
+        assert!(promise.poll_settled(&mut cx()));
         assert_eq!(promise.consume(), Some(Err(E::TaskFailed)));
     }
 
@@ -231,11 +231,11 @@ mod tests {
 
         let (mut promise, handle) = inner.abortable();
 
-        assert!(promise.pending(&mut cx()));
+        assert!(promise.poll_pending(&mut cx()));
         assert!(!dropped.load(Ordering::SeqCst));
 
         assert_eq!(handle.abort(), Ok(PromiseAborted));
-        assert!(promise.settle(&mut cx()));
+        assert!(promise.poll_settled(&mut cx()));
 
         assert!(
             dropped.load(Ordering::SeqCst),
@@ -258,7 +258,7 @@ mod tests {
 
         let (mut promise, handle) = pending_promise().abortable();
 
-        assert!(promise.pending(&mut cx));
+        assert!(promise.poll_pending(&mut cx));
         assert_eq!(waker.0.load(Ordering::SeqCst), 0);
 
         assert_eq!(handle.abort(), Ok(PromiseAborted));
@@ -268,7 +268,7 @@ mod tests {
             "aborting a pending promise must wake the parked task"
         );
 
-        assert!(promise.settle(&mut cx));
+        assert!(promise.poll_settled(&mut cx));
         assert_eq!(promise.consume(), Some(Err(E::TaskFailed)));
     }
 
@@ -279,7 +279,7 @@ mod tests {
         let (mut promise, handle) = pending_promise().abortable();
 
         assert_eq!(handle.abort(), Ok(PromiseAborted));
-        assert!(promise.settle(&mut cx()));
+        assert!(promise.poll_settled(&mut cx()));
         assert_eq!(promise.consume(), Some(Err(E::TaskFailed)));
         assert_eq!(handle.abort(), Err(PromiseSettled));
     }

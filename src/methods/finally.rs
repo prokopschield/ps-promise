@@ -76,7 +76,7 @@ mod tests {
             let mut promise = make();
             let mut cx = Context::from_waker(Waker::noop());
 
-            while !promise.settle(&mut cx) {}
+            while !promise.poll_settled(&mut cx) {}
 
             promise.consume().expect("promise settled")
         }
