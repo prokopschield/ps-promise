@@ -314,7 +314,7 @@ mod tests {
         let (mut promise, resolve, _reject) = Promise::<i32, E>::with_resolvers();
 
         resolve.resolve(42);
-        promise.ready(&mut cx());
+        promise.settle(&mut cx());
 
         assert_eq!(promise.consume(), Some(Ok(42)));
     }
@@ -324,7 +324,7 @@ mod tests {
         let (mut promise, _resolve, reject) = Promise::<i32, E>::with_resolvers();
 
         reject.reject(E::Fail);
-        promise.ready(&mut cx());
+        promise.settle(&mut cx());
 
         assert_eq!(promise.consume(), Some(Err(E::Fail)));
     }
@@ -337,7 +337,7 @@ mod tests {
 
         resolve.resolve(7);
 
-        assert!(promise.ready(&mut cx()));
+        assert!(promise.settle(&mut cx()));
         assert_eq!(promise.consume(), Some(Ok(7)));
     }
 
@@ -347,7 +347,7 @@ mod tests {
 
         resolve.resolve(1);
         reject.reject(E::Fail);
-        promise.ready(&mut cx());
+        promise.settle(&mut cx());
 
         assert_eq!(promise.consume(), Some(Ok(1)));
     }
@@ -358,7 +358,7 @@ mod tests {
 
         drop(resolve);
         drop(reject);
-        promise.ready(&mut cx());
+        promise.settle(&mut cx());
 
         assert_eq!(promise.consume(), Some(Err(resolvers_dropped())));
     }
@@ -369,7 +369,7 @@ mod tests {
 
         resolve.resolve(9);
         drop(reject);
-        promise.ready(&mut cx());
+        promise.settle(&mut cx());
 
         assert_eq!(promise.consume(), Some(Ok(9)));
     }
@@ -384,7 +384,7 @@ mod tests {
         drop(reject);
 
         clone.resolve(3);
-        promise.ready(&mut cx());
+        promise.settle(&mut cx());
 
         assert_eq!(promise.consume(), Some(Ok(3)));
     }
@@ -397,7 +397,7 @@ mod tests {
 
         clone.resolve(1);
         resolve.resolve(2);
-        promise.ready(&mut cx());
+        promise.settle(&mut cx());
 
         assert_eq!(promise.consume(), Some(Ok(1)));
     }
@@ -414,7 +414,7 @@ mod tests {
         assert!(promise.pending(&mut cx()));
 
         clone.reject(E::Fail);
-        promise.ready(&mut cx());
+        promise.settle(&mut cx());
 
         assert_eq!(promise.consume(), Some(Err(E::Fail)));
     }
@@ -433,7 +433,7 @@ mod tests {
 
         drop(resolve_clone);
         drop(reject_clone);
-        promise.ready(&mut cx());
+        promise.settle(&mut cx());
 
         assert_eq!(promise.consume(), Some(Err(resolvers_dropped())));
     }
@@ -459,7 +459,7 @@ mod tests {
 
         assert_eq!(counter.count.load(Ordering::SeqCst), 1);
 
-        assert!(promise.ready(&mut cx()));
+        assert!(promise.settle(&mut cx()));
         assert_eq!(promise.consume(), Some(Ok(8)));
     }
 
@@ -476,7 +476,7 @@ mod tests {
 
         assert_eq!(counter.count.load(Ordering::SeqCst), 1);
 
-        assert!(promise.ready(&mut cx()));
+        assert!(promise.settle(&mut cx()));
         assert_eq!(promise.consume(), Some(Err(E::Fail)));
     }
 
@@ -496,7 +496,7 @@ mod tests {
 
         assert_eq!(counter.count.load(Ordering::SeqCst), 1);
 
-        assert!(promise.ready(&mut cx()));
+        assert!(promise.settle(&mut cx()));
         assert_eq!(promise.consume(), Some(Err(resolvers_dropped())));
     }
 
@@ -518,7 +518,7 @@ mod tests {
         assert_eq!(counter_a.count.load(Ordering::SeqCst), 0);
         assert_eq!(counter_b.count.load(Ordering::SeqCst), 1);
 
-        assert!(promise.ready(&mut cx()));
+        assert!(promise.settle(&mut cx()));
         assert_eq!(promise.consume(), Some(Ok(4)));
     }
 
@@ -536,7 +536,7 @@ mod tests {
 
         assert!(counter.count.load(Ordering::SeqCst) >= 1);
 
-        assert!(promise.ready(&mut cx()));
+        assert!(promise.settle(&mut cx()));
         assert_eq!(promise.consume(), Some(Ok(21)));
     }
 

@@ -101,7 +101,7 @@ where
         self.state.woke.store(false, Ordering::Relaxed);
 
         // Call inner Promise (no lock is held)
-        let is_ready = inner.ready(&mut shared_cx);
+        let is_settled = inner.settle(&mut shared_cx);
 
         // Critical section: re-acquire inner promise lock
         let mut guard = self
@@ -113,12 +113,12 @@ where
         // place promise back into its container
         guard.replace(inner);
 
-        if !is_ready {
+        if !is_settled {
             return if self.state.woke.load(Ordering::Relaxed) {
                 // Waker fired during or after poll of underlying Promise.
                 PollStep::Woke
             } else {
-                // There is genuinely no value ready.
+                // The promise has genuinely not settled.
                 PollStep::Pending
             };
         }
@@ -268,8 +268,8 @@ mod tests {
         // First poll: the driver registers `task_waker`, takes the inner promise
         // out, and polls it. `YieldOnce` wakes `shared_waker` *during* that poll
         // (fanning out to `task_waker`) and returns `Pending`. So when the driver
-        // re-checks, `is_ready == false` even though `shared_waker` already fired
-        // within this single drive: exactly the `!is_ready && woken-during-drive`
+        // re-checks, `is_settled == false` even though `shared_waker` already fired
+        // within this single drive: exactly the `!is_settled && woken-during-drive`
         // state, reached deterministically on one thread.
         let first = poll_with(&mut shared, &task_waker);
 
@@ -280,7 +280,7 @@ mod tests {
             "shared_waker must have fired during the pending drive"
         );
 
-        // The inner promise is ready now; the next poll observes it.
+        // The inner promise has settled by now; the next poll observes it.
         assert_eq!(poll(&mut shared), Poll::Ready(Ok(42)));
     }
 

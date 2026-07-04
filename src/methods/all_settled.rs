@@ -121,7 +121,7 @@ mod tests {
     fn empty() {
         let mut settled: Promise<Vec<Result<(), E>>, E> = Promise::all_settled([]);
 
-        settled.ready(&mut cx());
+        settled.settle(&mut cx());
 
         match settled.consume() {
             Some(Ok(v)) => assert!(v.is_empty()),
@@ -137,7 +137,7 @@ mod tests {
             Promise::lazy(async { Ok(3) }),
         ]);
 
-        settled.ready(&mut cx());
+        settled.settle(&mut cx());
 
         match settled.consume() {
             Some(Ok(v)) => assert_eq!(v, vec![Ok(1), Err(E::Code(2)), Ok(3)]),
@@ -152,7 +152,7 @@ mod tests {
             Promise::lazy(async { Err(E::Code(2)) }),
         ]);
 
-        settled.ready(&mut cx());
+        settled.settle(&mut cx());
 
         match settled.consume() {
             Some(Ok(v)) => assert_eq!(v, vec![Err(E::Code(1)), Err(E::Code(2))]),
@@ -165,10 +165,10 @@ mod tests {
         let mut settled: Promise<Vec<Result<i32, E>>, E> =
             Promise::all_settled([Promise::lazy(async { Ok(1) })]);
 
-        settled.ready(&mut cx());
+        settled.settle(&mut cx());
         assert_eq!(settled.consume(), Some(Ok(vec![Ok(1)])));
 
-        settled.ready(&mut cx());
+        settled.settle(&mut cx());
         assert_eq!(settled.consume(), Some(Err(E::AlreadyConsumed)));
     }
 }

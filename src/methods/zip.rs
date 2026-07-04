@@ -130,7 +130,7 @@ mod tests {
 
         let mut zipped = left.zip(right);
 
-        zipped.ready(&mut cx());
+        zipped.settle(&mut cx());
 
         assert_eq!(zipped.consume(), Some(Ok((1, "a"))));
     }
@@ -142,7 +142,7 @@ mod tests {
 
         let mut zipped = left.zip(right);
 
-        zipped.ready(&mut cx());
+        zipped.settle(&mut cx());
 
         assert_eq!(zipped.consume(), Some(Err(E::Code(1))));
     }
@@ -154,7 +154,7 @@ mod tests {
 
         let mut zipped = left.zip(right);
 
-        zipped.ready(&mut cx());
+        zipped.settle(&mut cx());
 
         assert_eq!(zipped.consume(), Some(Err(E::Code(2))));
     }
@@ -167,7 +167,7 @@ mod tests {
 
         let mut zipped = a.zip(b).zip(c);
 
-        zipped.ready(&mut cx());
+        zipped.settle(&mut cx());
 
         assert_eq!(zipped.consume(), Some(Ok(((1, "b"), true))));
     }
@@ -179,7 +179,7 @@ mod tests {
 
         let mut zipped = left.zip(right);
 
-        zipped.ready(&mut cx());
+        zipped.settle(&mut cx());
 
         assert_eq!(zipped.consume(), Some(Err(E::Code(2))));
     }
@@ -191,10 +191,10 @@ mod tests {
 
         let mut zipped = left.zip(right);
 
-        zipped.ready(&mut cx());
+        zipped.settle(&mut cx());
         assert_eq!(zipped.consume(), Some(Ok((1, 2))));
 
-        zipped.ready(&mut cx());
+        zipped.settle(&mut cx());
         assert_eq!(zipped.consume(), Some(Err(E::AlreadyConsumed)));
     }
 }

@@ -22,7 +22,7 @@ where
     /// suggestion, not a command: it takes effect only while the promise is
     /// still pending and is observed on a subsequent poll. When an abort is
     /// visible on a poll it takes precedence, so the promise rejects even if
-    /// the underlying promise is simultaneously ready; but an abort that
+    /// the underlying promise is simultaneously settled; but an abort that
     /// arrives after the promise has already settled simply has no effect. On
     /// abort the promise rejects with [`Aborted`] wrapped in
     /// [`TaskFailure::Error`](crate::TaskFailure::Error), mapped through
@@ -143,7 +143,7 @@ mod tests {
 
         assert_eq!(handle.abort(), Ok(PromiseAborted));
 
-        assert!(promise.ready(&mut cx()));
+        assert!(promise.settle(&mut cx()));
         assert_eq!(promise.consume(), Some(Err(E::TaskFailed)));
     }
 
@@ -156,7 +156,7 @@ mod tests {
         assert_eq!(handle.abort(), Ok(PromiseAborted));
         assert_eq!(handle.abort(), Ok(PromiseAborted));
 
-        assert!(promise.ready(&mut cx()));
+        assert!(promise.settle(&mut cx()));
         assert_eq!(promise.consume(), Some(Err(E::TaskFailed)));
     }
 
@@ -164,7 +164,7 @@ mod tests {
     fn resolves_when_not_aborted() {
         let (mut promise, _handle) = Promise::<i32, E>::resolve(42).abortable();
 
-        assert!(promise.ready(&mut cx()));
+        assert!(promise.settle(&mut cx()));
         assert_eq!(promise.consume(), Some(Ok(42)));
     }
 
@@ -188,7 +188,7 @@ mod tests {
 
         assert_eq!(clone.abort(), Ok(PromiseAborted));
 
-        assert!(promise.ready(&mut cx()));
+        assert!(promise.settle(&mut cx()));
         assert_eq!(promise.consume(), Some(Err(E::TaskFailed)));
     }
 
@@ -199,7 +199,7 @@ mod tests {
     fn settlement_wins_over_later_abort() {
         let (mut promise, handle) = Promise::<i32, E>::resolve(5).abortable();
 
-        assert!(promise.ready(&mut cx()));
+        assert!(promise.settle(&mut cx()));
 
         assert_eq!(handle.abort(), Err(PromiseSettled));
 
@@ -208,15 +208,15 @@ mod tests {
 
     /// A pending abort takes precedence over an underlying promise that is
     /// already resolvable: aborting before the first poll rejects, rather than
-    /// surfacing the ready value. This is the imperative `AbortController`
+    /// surfacing the settled value. This is the imperative `AbortController`
     /// semantic, where `abort` commands cancellation rather than racing.
     #[test]
-    fn abort_wins_over_ready_inner() {
+    fn abort_wins_over_settled_inner() {
         let (mut promise, handle) = Promise::<i32, E>::resolve(5).abortable();
 
         assert_eq!(handle.abort(), Ok(PromiseAborted));
 
-        assert!(promise.ready(&mut cx()));
+        assert!(promise.settle(&mut cx()));
         assert_eq!(promise.consume(), Some(Err(E::TaskFailed)));
     }
 
@@ -235,7 +235,7 @@ mod tests {
         assert!(!dropped.load(Ordering::SeqCst));
 
         assert_eq!(handle.abort(), Ok(PromiseAborted));
-        assert!(promise.ready(&mut cx()));
+        assert!(promise.settle(&mut cx()));
 
         assert!(
             dropped.load(Ordering::SeqCst),
@@ -268,7 +268,7 @@ mod tests {
             "aborting a pending promise must wake the parked task"
         );
 
-        assert!(promise.ready(&mut cx));
+        assert!(promise.settle(&mut cx));
         assert_eq!(promise.consume(), Some(Err(E::TaskFailed)));
     }
 
@@ -279,7 +279,7 @@ mod tests {
         let (mut promise, handle) = pending_promise().abortable();
 
         assert_eq!(handle.abort(), Ok(PromiseAborted));
-        assert!(promise.ready(&mut cx()));
+        assert!(promise.settle(&mut cx()));
         assert_eq!(promise.consume(), Some(Err(E::TaskFailed)));
         assert_eq!(handle.abort(), Err(PromiseSettled));
     }

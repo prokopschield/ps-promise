@@ -130,7 +130,7 @@ mod tests {
     fn empty() {
         let mut all: Promise<(), Vec<E>> = Promise::any([]);
 
-        all.ready(&mut cx());
+        all.settle(&mut cx());
 
         match all.consume() {
             Some(Err(v)) => assert!(v.is_empty(), "Result vector is not empty!"),
@@ -146,7 +146,7 @@ mod tests {
             Promise::lazy(async { Err(E::Code(3)) }),
         ]);
 
-        all.ready(&mut cx());
+        all.settle(&mut cx());
 
         match all.consume() {
             Some(Ok(v)) => assert_eq!(v, 2),
@@ -161,7 +161,7 @@ mod tests {
             Promise::lazy(async { Ok(2) }),
         ]);
 
-        any.ready(&mut cx());
+        any.settle(&mut cx());
 
         assert_eq!(any.consume(), Some(Ok(2)));
     }
@@ -174,7 +174,7 @@ mod tests {
             Promise::lazy(async { Err(E::Code(3)) }),
         ]);
 
-        all.ready(&mut cx());
+        all.settle(&mut cx());
 
         match all.consume() {
             Some(Err(v)) => assert_eq!(v, [1, 2, 3].map(E::Code)),

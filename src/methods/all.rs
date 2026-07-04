@@ -130,7 +130,7 @@ mod tests {
     #[test]
     fn empty() {
         let mut all: Promise<Vec<()>, E> = Promise::all([]);
-        all.ready(&mut cx());
+        all.settle(&mut cx());
 
         match all.consume() {
             Some(Ok(v)) => assert!(v.is_empty()),
@@ -146,7 +146,7 @@ mod tests {
             Promise::lazy(async { Ok(3) }),
         ]);
 
-        all.ready(&mut cx());
+        all.settle(&mut cx());
 
         match all.consume() {
             Some(Ok(v)) => assert_eq!(v, vec![1, 2, 3]),
@@ -162,7 +162,7 @@ mod tests {
             Promise::lazy(async { Ok(3) }),
         ]);
 
-        all.ready(&mut cx());
+        all.settle(&mut cx());
 
         match all.consume() {
             Some(Err(E::Code(2))) => {}
@@ -179,10 +179,10 @@ mod tests {
             Promise::lazy(async { Err(E::Code(3)) }),
         ]);
 
-        all.ready(&mut cx());
+        all.settle(&mut cx());
         assert_eq!(all.consume(), Some(Err(E::Code(1))));
 
-        all.ready(&mut cx());
+        all.settle(&mut cx());
         assert_eq!(all.consume(), Some(Err(E::AlreadyConsumed)));
     }
 
@@ -190,10 +190,10 @@ mod tests {
     fn repoll_after_success_yields_already_consumed() {
         let mut all: Promise<Vec<i32>, E> = Promise::all([Promise::lazy(async { Ok(1) })]);
 
-        all.ready(&mut cx());
+        all.settle(&mut cx());
         assert_eq!(all.consume(), Some(Ok(vec![1])));
 
-        all.ready(&mut cx());
+        all.settle(&mut cx());
         assert_eq!(all.consume(), Some(Err(E::AlreadyConsumed)));
     }
 
@@ -204,7 +204,7 @@ mod tests {
             Promise::lazy(async { Err(E::Code(2)) }),
         ]);
 
-        all.ready(&mut cx());
+        all.settle(&mut cx());
 
         assert_eq!(all.consume(), Some(Err(E::Code(2))));
     }
@@ -216,10 +216,10 @@ mod tests {
             Promise::lazy(async { Err(E::Code(20)) }),
         ]);
 
-        all.ready(&mut cx());
+        all.settle(&mut cx());
         assert_eq!(all.consume(), Some(Err(E::Code(10))));
 
-        all.ready(&mut cx());
+        all.settle(&mut cx());
         assert_eq!(all.consume(), Some(Err(E::AlreadyConsumed)));
     }
 }

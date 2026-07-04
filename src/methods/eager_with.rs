@@ -73,7 +73,7 @@ mod tests {
     fn resolves_value() {
         let mut p: Promise<i32, E> = Promise::eager_with(async { Ok(42) }, |p| p);
 
-        p.ready(&mut cx());
+        p.settle(&mut cx());
 
         match p.consume() {
             Some(Ok(v)) => assert_eq!(v, 42),
@@ -85,7 +85,7 @@ mod tests {
     fn rejects_error() {
         let mut p: Promise<i32, E> = Promise::eager_with(async { Err(E::Fail) }, |p| p);
 
-        p.ready(&mut cx());
+        p.settle(&mut cx());
 
         match p.consume() {
             Some(Err(E::Fail)) => {}
@@ -97,7 +97,7 @@ mod tests {
     fn catches_panic_in_inner_future() {
         let mut p: Promise<i32, E> = Promise::eager_with(async { panic!("boom") }, |p| p);
 
-        p.ready(&mut cx());
+        p.settle(&mut cx());
 
         match p.consume() {
             Some(Err(E::TaskFailed(failure @ TaskFailure::Panic(_)))) => {
@@ -115,7 +115,7 @@ mod tests {
             ))))
         });
 
-        p.ready(&mut cx());
+        p.settle(&mut cx());
 
         match p.consume() {
             Some(Err(E::TaskFailed(TaskFailure::Error(_)))) => {}
@@ -128,7 +128,7 @@ mod tests {
         let mut p: Promise<i32, E> =
             Promise::eager_with(async { Ok(99) }, |_p| async { Err(E::Fail) });
 
-        p.ready(&mut cx());
+        p.settle(&mut cx());
 
         match p.consume() {
             Some(Err(E::Fail)) => {}
