@@ -1,0 +1,63 @@
+name: CI
+
+on:
+    push:
+        branches: [master]
+    pull_request:
+
+env:
+    CARGO_TERM_COLOR: always
+
+jobs:
+    test:
+        name: Test (${{ matrix.name }})
+        runs-on: ubuntu-latest
+        strategy:
+            fail-fast: false
+            matrix:
+                include:
+                    - name: default
+                      flags: ""
+                    - name: anyhow
+                      flags: --features anyhow
+                    - name: smol
+                      flags: --features smol
+                    - name: tokio
+                      flags: --features tokio
+        steps:
+            - uses: actions/checkout@v4
+            - uses: dtolnay/rust-toolchain@stable
+            - uses: Swatinem/rust-cache@v2
+            - run: cargo test ${{ matrix.flags }}
+
+    clippy:
+        name: Clippy
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+            - uses: dtolnay/rust-toolchain@stable
+              with:
+                  components: clippy
+            - uses: Swatinem/rust-cache@v2
+            - run: cargo clippy --all-targets --all-features -- -D warnings
+
+    fmt:
+        name: Format
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+            - uses: dtolnay/rust-toolchain@stable
+              with:
+                  components: rustfmt
+            - run: cargo fmt --check
+
+    doc:
+        name: Docs
+        runs-on: ubuntu-latest
+        env:
+            RUSTDOCFLAGS: -D warnings
+        steps:
+            - uses: actions/checkout@v4
+            - uses: dtolnay/rust-toolchain@stable
+            - uses: Swatinem/rust-cache@v2
+            - run: cargo doc --no-deps --all-features
