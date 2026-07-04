@@ -1,5 +1,4 @@
 use std::{
-    pin::Pin,
     sync::{atomic::Ordering, PoisonError},
     task::Context,
 };
@@ -33,10 +32,7 @@ where
     T: Clone + Send + 'static,
     E: PromiseRejection + Clone,
 {
-    pub(in crate::methods::shared) fn poll_step(
-        self: &Pin<&mut Self>,
-        cx: &Context<'_>,
-    ) -> PollStep<T, E> {
+    pub(in crate::methods::shared) fn poll_step(&self, cx: &Context<'_>) -> PollStep<T, E> {
         // critical section: check for inner promise presence
         // lock ordering: always acquire inner promise lock first
         let mut guard = self
