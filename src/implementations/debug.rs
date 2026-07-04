@@ -11,10 +11,10 @@ where
         let mut fmt = f.debug_struct("Promise");
 
         match &self.state {
-            State::Pending(_) => fmt.field("state", &"Pending"),
+            State::Pending(_) => fmt.field("state", &format_args!("Pending")),
             State::Resolved(value) => fmt.field("resolved", value),
             State::Rejected(err) => fmt.field("rejected", err),
-            State::Consumed => fmt.field("state", &"Consumed"),
+            State::Consumed => fmt.field("state", &format_args!("Consumed")),
             State::Failed(failure) => fmt.field("failed", failure),
         };
 
