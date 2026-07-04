@@ -8,6 +8,12 @@ impl<T, E> SharedState<T, E>
 where
     E: PromiseRejection,
 {
+    /// Records that the shared waker fired, so a driver whose poll of the
+    /// inner promise returns pending re-drives it inline instead of parking.
+    ///
+    /// Relaxed suffices: the flag is only that re-drive hint. Wake delivery
+    /// rides on the mutex-serialized waker queue, so a driver that misses
+    /// the flag parks and is woken through its registered waker.
     pub(in crate::methods::shared) fn woke(&self) {
         self.woke.store(true, Ordering::Relaxed);
     }

@@ -97,7 +97,13 @@ where
         let shared_waker = SharedWaker::new_waker(&self.state);
         let mut shared_cx = Context::from_waker(&shared_waker);
 
-        // About to call inner promise, clear the woke flag.
+        // About to call inner promise, clear the woke flag. Relaxed suffices
+        // here and at the load below: the flag is only a hint that triggers
+        // the inline re-drive, and wake delivery rides on the
+        // mutex-serialized waker queue instead. A racing wake that the load
+        // misses is not lost; it has already fanned out to the wakers
+        // registered above. Do not "strengthen" the orderings, and do not
+        // make wake delivery depend on this flag.
         self.state.woke.store(false, Ordering::Relaxed);
 
         // Call inner Promise (no lock is held)

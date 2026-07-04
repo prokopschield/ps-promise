@@ -19,6 +19,11 @@ where
 
             let mut called = HashSet::new();
 
+            // Each entry is removed from the queue before its waker runs, so
+            // a foreign waker that panics mid-drain aborts the drain and
+            // leaves the remaining entries registered but unwoken until the
+            // next wake. Tolerated as pathological: a panicking waker
+            // violates the `Wake` contract.
             loop {
                 let next = {
                     let mut guard = state.wakers.lock().unwrap_or_else(PoisonError::into_inner);
