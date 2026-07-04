@@ -35,7 +35,7 @@ where
                 PollStep::Woke => counter += 1,
             }
 
-            if counter > LIVELOCK_MAX_SELF_POLLS {
+            if counter >= LIVELOCK_MAX_SELF_POLLS {
                 let wakers: Vec<Waker> = self
                     .state
                     .wakers
@@ -69,6 +69,8 @@ mod tests {
     };
 
     use crate::{Promise, PromiseRejection, SharedPromise, TaskFailure};
+
+    use super::LIVELOCK_MAX_SELF_POLLS;
 
     #[derive(Debug, Clone, PartialEq)]
     enum E {
@@ -344,7 +346,7 @@ mod tests {
     type ParkedConsumer = Arc<Mutex<Option<(SharedPromise<i32, E>, Waker)>>>;
 
     /// A slow self-waking inner future: it returns `Pending` and re-arms its own
-    /// waker on every poll until it has been polled `> LIVELOCK_MAX_SELF_POLLS`
+    /// waker on every poll until it has been polled `LIVELOCK_MAX_SELF_POLLS`
     /// times, which trips the driver's inline self-poll bound. On the poll that
     /// trips the bound it lets a late consumer park into the just-drained waker
     /// queue, then keeps returning `Pending` (it would resolve on a later poll
@@ -364,7 +366,7 @@ mod tests {
 
             cx.waker().wake_by_ref();
 
-            if this.polls == 8 {
+            if this.polls == LIVELOCK_MAX_SELF_POLLS {
                 let mut parked = this.parked.lock().expect("parked consumer");
 
                 if let Some((clone, waker)) = parked.as_mut() {
