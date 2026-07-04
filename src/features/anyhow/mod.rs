@@ -8,17 +8,7 @@ impl PromiseRejection for anyhow::Error {
     }
 
     fn task_failed(failure: TaskFailure) -> Self {
-        use std::fmt::Write;
-
-        let mut msg = format!("{failure}");
-        let mut src = std::error::Error::source(&failure);
-
-        while let Some(s) = src {
-            let _ = write!(msg, "\nCaused by: {s}");
-            src = s.source();
-        }
-
-        Self::msg(msg)
+        Self::new(failure)
     }
 }
 
@@ -26,7 +16,7 @@ impl PromiseRejection for anyhow::Error {
 mod tests {
     use anyhow::{anyhow, Error};
 
-    use crate::{Promise, PromiseRejection};
+    use crate::{Promise, PromiseRejection, TaskFailure};
 
     #[test]
     fn already_consumed_contains_expected_message() {
@@ -37,6 +27,23 @@ mod tests {
             message.contains("Promise was consumed and then awaited"),
             "Unexpected error message: {message}"
         );
+    }
+
+    #[test]
+    fn task_failed_downcasts_to_the_failure() {
+        let err = Error::task_failed(TaskFailure::Timeout);
+
+        assert!(matches!(
+            err.downcast_ref::<TaskFailure>(),
+            Some(TaskFailure::Timeout)
+        ));
+    }
+
+    #[test]
+    fn task_failed_displays_the_failure_message() {
+        let err = Error::task_failed(TaskFailure::Panic("boom".into()));
+
+        assert_eq!(format!("{err}"), "task panicked: boom");
     }
 
     #[test]
