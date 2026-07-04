@@ -57,7 +57,6 @@
 //! - `anyhow`: implements [`PromiseRejection`] for `anyhow::Error`.
 
 mod features;
-#[allow(dead_code, reason = "not yet wired into the combinators")]
 mod gate;
 mod implementations;
 mod methods;

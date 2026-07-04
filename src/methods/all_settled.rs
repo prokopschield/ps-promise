@@ -3,7 +3,7 @@ use std::{
     task::Poll::{Pending, Ready},
 };
 
-use crate::{Promise, PromiseRejection};
+use crate::{gate::GatedPromise, Promise, PromiseRejection};
 
 impl<T, E> Promise<T, E>
 where
@@ -43,7 +43,9 @@ where
         let mut is_pending = false;
 
         for promise in &mut this.promises {
-            if promise.poll_pending(cx) {
+            promise.poll(cx);
+
+            if promise.inner.is_pending() {
                 is_pending = true;
             }
         }
@@ -56,7 +58,7 @@ where
         let mut outcomes = Vec::with_capacity(this.promises.len());
 
         for promise in &mut this.promises {
-            match promise.consume() {
+            match promise.inner.consume() {
                 Some(outcome) => outcomes.push(outcome),
                 None => unreachable!("All promises are settled."),
             }
@@ -71,7 +73,7 @@ where
     T: Send + 'static,
     E: PromiseRejection,
 {
-    promises: Vec<Promise<T, E>>,
+    promises: Vec<GatedPromise<T, E>>,
 }
 
 impl<I, T, E> From<I> for PromiseAllSettled<T, E>
@@ -82,14 +84,22 @@ where
 {
     fn from(value: I) -> Self {
         Self {
-            promises: value.into_iter().collect(),
+            promises: value.into_iter().map(GatedPromise::new).collect(),
         }
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use std::task::{Context, Waker};
+    use std::{
+        future::Future,
+        pin::Pin,
+        sync::{
+            atomic::{AtomicUsize, Ordering},
+            Arc,
+        },
+        task::{Context, Poll, Waker},
+    };
 
     use crate::{Promise, PromiseRejection, TaskFailure};
 
@@ -158,6 +168,45 @@ mod tests {
             Some(Ok(v)) => assert_eq!(v, vec![Err(E::Code(1)), Err(E::Code(2))]),
             other => panic!("expected Resolved([Err(Code(1)), Err(Code(2))]), got {other:?}"),
         }
+    }
+
+    /// Inner future that counts its polls and never settles.
+    struct CountPolls {
+        polls: Arc<AtomicUsize>,
+    }
+
+    impl Future for CountPolls {
+        type Output = Result<i32, E>;
+
+        fn poll(self: Pin<&mut Self>, _cx: &mut Context<'_>) -> Poll<Self::Output> {
+            self.polls.fetch_add(1, Ordering::SeqCst);
+
+            Poll::Pending
+        }
+    }
+
+    #[test]
+    fn children_without_a_wakeup_request_are_not_repolled() {
+        let polls = Arc::new(AtomicUsize::new(0));
+
+        let never: Promise<i32, E> = Promise::lazy(CountPolls {
+            polls: polls.clone(),
+        });
+        let (pending, resolve, _reject) = Promise::<i32, E>::with_resolvers();
+
+        let mut settled = Promise::all_settled([never, pending]);
+
+        assert!(!settled.poll_settled(&mut cx()));
+        assert!(!settled.poll_settled(&mut cx()));
+        assert!(!settled.poll_settled(&mut cx()));
+
+        assert_eq!(polls.load(Ordering::SeqCst), 1);
+
+        resolve.resolve(1);
+
+        assert!(!settled.poll_settled(&mut cx()));
+
+        assert_eq!(polls.load(Ordering::SeqCst), 1);
     }
 
     #[test]
