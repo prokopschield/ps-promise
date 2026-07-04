@@ -23,7 +23,7 @@ where
     ///
     /// Mirrors ECMAScript's `Promise.withResolvers`: the promise stays
     /// pending until [`Resolve::resolve`] or [`Reject::reject`] is called,
-    /// and the first settlement wins. Both handles are clonable, and any
+    /// and the first settlement wins. Both handles are cloneable, and any
     /// clone may settle the promise. If every handle, including clones, is
     /// dropped without settling, the promise rejects with
     /// [`ResolversDropped`] wrapped in [`TaskFailure::Error`], mapped

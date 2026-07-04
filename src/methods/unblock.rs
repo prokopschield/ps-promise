@@ -21,6 +21,11 @@ where
     /// - Otherwise: dispatches to `blocking::unblock`, which uses the
     ///   `blocking` crate's runtime-independent thread pool.
     ///
+    /// On the smol and blocking paths, a panic in the closure resurfaces
+    /// when the [`Promise`] is polled, where it is caught and mapped to
+    /// [`TaskFailure::Panic`](crate::TaskFailure::Panic); a closure panic
+    /// rejects the promise on every path.
+    ///
     /// The closure is scheduled synchronously during this call; the outer
     /// [`Promise`] must still be polled (or awaited) to receive the outcome.
     pub fn unblock<F>(f: F) -> Self

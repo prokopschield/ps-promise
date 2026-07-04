@@ -14,7 +14,9 @@ where
     /// the [`Resolve`] and [`Reject`] handles, and the first settlement wins.
     /// The handles may be cloned or stored for later; if every handle is
     /// dropped without settling, the promise rejects with
-    /// [`ResolversDropped`](crate::ResolversDropped). A panic in the executor
+    /// [`ResolversDropped`](crate::ResolversDropped) wrapped in
+    /// [`TaskFailure::Error`], mapped through
+    /// [`PromiseRejection::task_failed`]. A panic in the executor
     /// is caught and rejects the promise with [`TaskFailure::Panic`] mapped
     /// through [`PromiseRejection::task_failed`], unless the promise was
     /// settled before the panic.

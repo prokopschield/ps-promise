@@ -21,7 +21,7 @@ where
     T: Clone + Send + 'static,
     E: PromiseRejection + Clone,
 {
-    /// Converts this [`Promise`] into a clonable, multi-consumer handle.
+    /// Converts this [`Promise`] into a cloneable, multi-consumer handle.
     ///
     /// The inner promise runs once; every clone observes the same settled
     /// result, cloned per consumer. Unlike a [`Promise`], a

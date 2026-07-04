@@ -5,8 +5,9 @@ use crate::{AbortHandle, PromiseAborted, PromiseSettled};
 impl AbortHandle {
     /// Requests that the associated [`Promise`](crate::Promise) abort.
     ///
-    /// Aborting is a suggestion, not a command. The request is lodged
-    /// unconditionally, and a promise that is still pending when next polled
+    /// Aborting is a suggestion, not a command. The request is lodged unless
+    /// the promise has already settled or been dropped, and a promise that
+    /// is still pending when next polled
     /// rejects with [`TaskFailure::Aborted`](crate::TaskFailure::Aborted),
     /// mapped through
     /// [`PromiseRejection::task_failed`](crate::PromiseRejection::task_failed).
@@ -18,8 +19,8 @@ impl AbortHandle {
     /// make it precise. Absent a concurrent settlement it is accurate, but a
     /// promise settling on another thread at the same moment may cause this
     /// call to report [`PromiseAborted`] for a promise that goes on to deliver
-    /// its own result, or [`PromiseSettled`] for one that still aborts. Use it
-    /// as advisory; do not rely on it to decide which outcome occurred.
+    /// its own result, or [`PromiseSettled`] for one that still aborts. Treat
+    /// it as advisory; do not rely on it to decide which outcome occurred.
     ///
     /// # Errors
     ///

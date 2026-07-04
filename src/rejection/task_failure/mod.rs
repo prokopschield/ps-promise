@@ -19,7 +19,8 @@ pub enum TaskFailure {
     #[error("promise aborted")]
     Aborted,
 
-    /// The task failed with an error, such as dropped resolver handles.
+    /// The task failed with an error, such as when every resolver handle
+    /// was dropped.
     #[error(transparent)]
     Error(Arc<dyn Error + Send + Sync + 'static>),
 

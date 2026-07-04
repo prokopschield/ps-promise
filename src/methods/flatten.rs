@@ -10,8 +10,9 @@ where
     /// Mirrors ECMAScript's thenable assimilation, where a promise resolved
     /// with a thenable adopts its state instead of yielding it. The resolved
     /// value may be any type convertible into a [`Promise`] (a nested
-    /// [`Promise`], a `Result`, an `Option`, or a boxed future); an outer
-    /// rejection bypasses the conversion and converts into `EO` via `From`.
+    /// [`Promise`], a `Result`, an `Option`, whose conversion additionally
+    /// requires `EO: Default`, or a boxed future); an outer rejection
+    /// bypasses the conversion and converts into `EO` via `From`.
     /// The returned promise is scheduled via [`Promise::eager_or_lazy`].
     pub fn flatten<TO, EO>(self) -> Promise<TO, EO>
     where

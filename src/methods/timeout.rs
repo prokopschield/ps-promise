@@ -7,7 +7,8 @@ where
     T: Send + 'static,
     E: PromiseRejection,
 {
-    /// Rejects this [`Promise`] if it does not settle within `duration`.
+    /// Returns a [`Promise`] that rejects if this one does not settle
+    /// within `duration`.
     ///
     /// The deadline timer is provided by [`Promise::sleep`] and follows its
     /// runtime dispatch. On expiry the promise rejects with

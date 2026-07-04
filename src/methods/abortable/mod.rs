@@ -19,12 +19,12 @@ where
     /// Returns the wrapped promise alongside an [`AbortHandle`]. Aborting is a
     /// suggestion, not a command: it takes effect only while the promise is
     /// still pending and is observed on a subsequent poll. When an abort is
-    /// visible on a poll it takes precedence, so the promise rejects even if
+    /// visible on a poll, it takes precedence, so the promise rejects even if
     /// the underlying promise is simultaneously settled; but an abort that
     /// arrives after the promise has already settled simply has no effect. On
     /// abort the promise rejects with
     /// [`TaskFailure::Aborted`](crate::TaskFailure::Aborted), mapped through
-    /// [`PromiseRejection::task_failed`]. The handle is clonable, so any clone
+    /// [`PromiseRejection::task_failed`]. The handle is cloneable, so any clone
     /// may abort, and [`AbortHandle::abort`]'s return value is only a hint, as
     /// described on that method. Dropping every handle without aborting has no
     /// effect: the underlying promise simply runs to completion.
@@ -41,7 +41,7 @@ where
     /// - An eager promise (`eager_with_tokio` or `eager_with_smol`) holds a
     ///   detached task. Aborting abandons the result, but the spawned future
     ///   runs to completion; the work is not stopped.
-    /// - [`Promise::unblock`] work runs a blocking closure on a thread pool. A
+    /// - [`Promise::unblock`] runs a blocking closure on a thread pool. A
     ///   closure that has already started cannot be interrupted, so aborting
     ///   abandons the result while the closure runs to completion.
     pub fn abortable(self) -> (Self, AbortHandle) {

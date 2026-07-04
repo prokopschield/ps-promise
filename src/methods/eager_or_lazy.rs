@@ -10,7 +10,7 @@ where
     /// Wraps a [`Future`] in a [`Promise`], eagerly scheduled when a runtime
     /// feature is enabled and lazy otherwise.
     ///
-    /// - Any of the `tokio` or `smol` features enabled: delegates to
+    /// - Either of the `tokio` or `smol` features enabled: delegates to
     ///   `Promise::eager`, which dispatches to the available runtime; with
     ///   only `tokio` enabled and no runtime context active, this in turn
     ///   degrades to lazy scheduling.

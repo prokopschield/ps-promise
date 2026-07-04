@@ -24,9 +24,9 @@ pub trait PromiseRejection
 where
     Self: Send + 'static,
 {
-    /// Returns the error variant representing this [`Promise`](crate::Promise) being consumed more than once.
+    /// Returns the rejection value representing an already-consumed promise being consumed again.
     fn already_consumed() -> Self;
 
-    /// Returns the error variant representing the underlying task failing, e.g. by panicking or being cancelled by the runtime.
+    /// Returns the rejection value representing the underlying task failing, e.g. by panicking or being cancelled by the runtime.
     fn task_failed(failure: TaskFailure) -> Self;
 }

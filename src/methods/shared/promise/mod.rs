@@ -7,7 +7,7 @@ use crate::PromiseRejection;
 
 use super::state::SharedState;
 
-/// A clonable, multi-consumer handle to a [`crate::Promise`], created by [`crate::Promise::shared`].
+/// A cloneable, multi-consumer handle to a [`crate::Promise`], created by [`crate::Promise::shared`].
 pub struct SharedPromise<T, E>
 where
     E: PromiseRejection,

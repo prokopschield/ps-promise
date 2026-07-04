@@ -8,7 +8,7 @@ impl<T, E> Promise<T, E> {
     /// This performs exactly one poll of the underlying future using a no-op waker.
     ///
     /// Wakes triggered during this synchronous poll are ignored.
-    /// Execution will effectively resume only when the [`Promise`] is polled again by a real executor.
+    /// Execution resumes only when the [`Promise`] is polled again.
     pub fn poll_sync(&mut self) {
         let waker = Waker::noop();
         let mut cx = Context::from_waker(waker);
