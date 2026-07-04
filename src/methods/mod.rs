@@ -17,6 +17,7 @@ mod eager_with_smol;
 #[cfg(feature = "tokio")]
 mod eager_with_tokio;
 mod finally;
+mod flatten;
 mod inspect;
 mod inspect_err;
 mod is_consumed;
