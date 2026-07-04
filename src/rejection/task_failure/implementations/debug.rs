@@ -8,6 +8,7 @@ impl Debug for TaskFailure {
             Self::Aborted => f.write_str("Aborted"),
             Self::Error(err) => f.debug_tuple("Error").field(err).finish(),
             Self::Panic(message) => f.debug_tuple("Panic").field(message).finish(),
+            Self::Timeout => f.write_str("Timed out"),
         }
     }
 }

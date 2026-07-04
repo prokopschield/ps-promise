@@ -19,14 +19,17 @@ pub enum TaskFailure {
     #[error("promise aborted")]
     Aborted,
 
-    /// The task failed with an error, such as a timeout or dropped resolver
-    /// handles.
+    /// The task failed with an error, such as dropped resolver handles.
     #[error(transparent)]
     Error(Arc<dyn Error + Send + Sync + 'static>),
 
     /// The task panicked. Carries the panic message.
     #[error("task panicked: {0}")]
     Panic(Arc<str>),
+
+    /// A [`Promise::timeout`](crate::Promise::timeout) deadline elapsed.
+    #[error("promise timed out")]
+    Timeout,
 }
 
 #[cfg(test)]

@@ -1,11 +1,6 @@
-use std::{sync::Arc, time::Duration};
+use std::time::Duration;
 
 use crate::{Promise, PromiseRejection, TaskFailure};
-
-/// Rejection payload produced when a [`Promise::timeout`] deadline elapses.
-#[derive(thiserror::Error, Debug, Clone, Copy, PartialEq, Eq)]
-#[error("promise timed out")]
-pub struct TimeoutError;
 
 impl<T, E> Promise<T, E>
 where
@@ -15,8 +10,8 @@ where
     /// Rejects this [`Promise`] if it does not settle within `duration`.
     ///
     /// The deadline timer is provided by [`Promise::sleep`] and follows its
-    /// runtime dispatch. On expiry the promise rejects with [`TimeoutError`]
-    /// wrapped in [`TaskFailure::Error`], mapped through
+    /// runtime dispatch. On expiry the promise rejects with
+    /// [`TaskFailure::Timeout`], mapped through
     /// [`PromiseRejection::task_failed`].
     pub fn timeout(self, duration: Duration) -> Self {
         let deadline = Promise::<(), E>::sleep(duration);
@@ -26,7 +21,7 @@ where
             Self::lazy(async move {
                 deadline.await?;
 
-                Err(E::task_failed(TaskFailure::Error(Arc::new(TimeoutError))))
+                Err(E::task_failed(TaskFailure::Timeout))
             }),
         ])
     }
@@ -43,6 +38,7 @@ mod tests {
     enum E {
         AlreadyConsumed,
         TaskFailed,
+        Timeout,
     }
 
     impl PromiseRejection for E {
@@ -50,8 +46,11 @@ mod tests {
             Self::AlreadyConsumed
         }
 
-        fn task_failed(_: TaskFailure) -> Self {
-            Self::TaskFailed
+        fn task_failed(failure: TaskFailure) -> Self {
+            match failure {
+                TaskFailure::Timeout => Self::Timeout,
+                _ => Self::TaskFailed,
+            }
         }
     }
 
@@ -99,6 +98,6 @@ mod tests {
             Promise::<i32, E>::lazy(std::future::pending::<Result<i32, E>>()).timeout(SHORT)
         });
 
-        assert_eq!(result, Err(E::TaskFailed));
+        assert_eq!(result, Err(E::Timeout));
     }
 }
