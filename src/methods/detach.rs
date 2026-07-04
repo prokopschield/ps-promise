@@ -9,11 +9,11 @@ where
     /// the background, discarding its outcome.
     ///
     /// This is fire-and-forget: it consumes the [`Promise`], satisfying the
-    /// `#[must_use]` obligation without an `.await`. The inner future runs to
-    /// completion regardless of this call returning, and its `Ok`/`Err` result
-    /// is dropped. Panics are caught by the [`Promise`] itself and turned into
-    /// a rejection, which is likewise dropped, so a detached [`Promise`] never
-    /// propagates a panic to the executor.
+    /// `#[must_use]` obligation without an `.await`. The inner future
+    /// continues running in the background after this call returns, and its
+    /// `Ok`/`Err` result is dropped. Panics are caught by the [`Promise`]
+    /// itself and turned into a rejection, which is likewise dropped, so a
+    /// detached [`Promise`] never propagates a panic to the executor.
     ///
     /// Dispatch is selected at compile time based on which runtime features
     /// are enabled, with a runtime check when both are on:
@@ -29,6 +29,14 @@ where
     ///
     /// Requires at least one of the `tokio` or `smol` features; if neither is
     /// enabled this method does not exist and call sites fail to compile.
+    ///
+    /// # Panics
+    ///
+    /// Panics if only the `tokio` feature is enabled and this method is
+    /// called outside of a tokio runtime context, propagated from
+    /// [`tokio::spawn`]. With the `smol` feature enabled there is no such
+    /// requirement: outside a tokio runtime context the promise is spawned
+    /// on smol's global executor instead.
     pub fn detach(self) {
         #[cfg(all(feature = "tokio", feature = "smol"))]
         if tokio::runtime::Handle::try_current().is_ok() {
