@@ -18,20 +18,22 @@ where
     /// - Otherwise: parks a thread on the `blocking` crate's pool.
     ///
     /// The returned [`Promise`] is lazy; the timer starts when it is first
-    /// polled.
-    ///
-    /// # Panics
-    ///
-    /// On the tokio path, polling the returned [`Promise`] panics if the
-    /// runtime's time driver is disabled, propagated from
-    /// `tokio::time::sleep`.
+    /// polled. On a tokio runtime whose time driver is disabled,
+    /// `tokio::time::sleep` is unusable, and the timer falls back to
+    /// `smol::Timer` or the `blocking` pool as above.
     pub fn sleep(duration: Duration) -> Self {
         Self::lazy(async move {
             #[cfg(feature = "tokio")]
             if tokio::runtime::Handle::try_current().is_ok() {
-                tokio::time::sleep(duration).await;
+                let timer = Promise::<(), ()>::lazy(async move {
+                    tokio::time::sleep(duration).await;
 
-                return Ok(());
+                    Ok(())
+                });
+
+                if timer.await.is_ok() {
+                    return Ok(());
+                }
             }
 
             #[cfg(feature = "smol")]
@@ -118,6 +120,23 @@ mod tests {
         while !promise.poll_settled(&mut cx) {}
 
         assert_eq!(promise.consume(), Some(Ok(())));
+        assert!(start.elapsed() >= NAP);
+    }
+
+    /// On a tokio runtime whose time driver is disabled, the timer falls
+    /// back to a portable timer instead of surfacing the panic raised by
+    /// `tokio::time::sleep`.
+    #[cfg(feature = "tokio")]
+    #[test]
+    fn falls_back_without_a_time_driver() {
+        let rt = tokio::runtime::Builder::new_current_thread()
+            .build()
+            .expect("build current-thread tokio runtime");
+
+        let start = Instant::now();
+        let result = rt.block_on(async { Promise::<(), E>::sleep(NAP).await });
+
+        assert_eq!(result, Ok(()));
         assert!(start.elapsed() >= NAP);
     }
 

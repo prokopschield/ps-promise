@@ -100,4 +100,23 @@ mod tests {
 
         assert_eq!(result, Err(E::Timeout));
     }
+
+    /// On a tokio runtime whose time driver is disabled, the deadline timer
+    /// falls back to a portable timer, so the promise still rejects with the
+    /// Timeout-mapped variant rather than a contained panic.
+    #[cfg(feature = "tokio")]
+    #[test]
+    fn rejects_after_deadline_without_a_time_driver() {
+        let rt = tokio::runtime::Builder::new_current_thread()
+            .build()
+            .expect("build current-thread tokio runtime");
+
+        let result = rt.block_on(async {
+            Promise::<i32, E>::lazy(std::future::pending::<Result<i32, E>>())
+                .timeout(SHORT)
+                .await
+        });
+
+        assert_eq!(result, Err(E::Timeout));
+    }
 }
