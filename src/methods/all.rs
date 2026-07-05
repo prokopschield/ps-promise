@@ -49,11 +49,12 @@ where
                 continue;
             }
 
-            if promise.inner.is_rejected() {
-                match promise.inner.consume() {
-                    Some(Err(err)) => return Ready(Err(err)),
-                    _ => unreachable!("The promise is rejected."),
-                }
+            if !promise.inner.is_resolved() {
+                let Some(Err(err)) = promise.inner.consume() else {
+                    unreachable!("The promise is neither pending nor resolved.")
+                };
+
+                return Ready(Err(err));
             }
         }
 
@@ -254,6 +255,36 @@ mod tests {
         all.poll_settled(&mut cx());
 
         assert_eq!(all.consume(), Some(Err(E::Code(2))));
+    }
+
+    /// A child that was consumed before being handed to `all` rejects the
+    /// result on the first poll, even while a sibling is still pending.
+    #[test]
+    fn consumed_input_short_circuits_pending() {
+        let mut consumed: Promise<i32, E> = Promise::resolve(1);
+
+        assert_eq!(consumed.consume(), Some(Ok(1)));
+
+        let mut all: Promise<Vec<i32>, E> =
+            Promise::all([Promise::lazy(std::future::pending()), consumed]);
+
+        assert!(all.poll_settled(&mut cx()));
+        assert_eq!(all.consume(), Some(Err(E::AlreadyConsumed)));
+    }
+
+    /// A child that failed rejects the result on the first poll, even while
+    /// a sibling is still pending.
+    #[test]
+    fn failed_input_short_circuits_pending() {
+        let mut failed: Promise<i32, E> = Promise::lazy(async { panic!("boom") });
+
+        assert!(failed.poll_settled(&mut cx()));
+
+        let mut all: Promise<Vec<i32>, E> =
+            Promise::all([Promise::lazy(std::future::pending()), failed]);
+
+        assert!(all.poll_settled(&mut cx()));
+        assert_eq!(all.consume(), Some(Err(E::TaskFailed)));
     }
 
     #[test]
