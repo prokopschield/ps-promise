@@ -43,7 +43,7 @@
 //! drops the future. With the `tokio` or `smol` feature enabled,
 //! [`Promise::eager_or_lazy`], and every combinator built on it
 //! ([`Promise::then`], [`Promise::map`], [`Promise::catch`], and the rest),
-//! spawns the future on the runtime instead (falling back to lazy when only
+//! spawn the future on the runtime instead (falling back to lazy when only
 //! `tokio` is enabled and no runtime context is active); a spawned future
 //! runs to completion even if the promise is dropped.
 //!
