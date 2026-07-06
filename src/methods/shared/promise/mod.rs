@@ -1,7 +1,7 @@
 mod implementations;
 mod methods;
 
-use std::sync::Arc;
+use std::{sync::Arc, task::Waker};
 
 use crate::PromiseRejection;
 
@@ -13,5 +13,6 @@ where
     E: PromiseRejection,
 {
     pub(super) state: Arc<SharedState<T, E>>,
+    pub(super) waker: Waker,
     pub(super) waiter_id: usize,
 }

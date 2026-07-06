@@ -2,7 +2,6 @@ use std::{sync::PoisonError, task::Context};
 
 use crate::{sync::atomic::Ordering, PromiseRejection};
 
-use super::super::super::waker::SharedWaker;
 use super::super::SharedPromise;
 
 pub(in crate::methods::shared) enum PollStep<T, E>
@@ -89,8 +88,7 @@ where
 
         // Poll the inner promise with a waker that fans out to every registered consumer,
         // so that progress is observed even if the current poller goes away.
-        let shared_waker = SharedWaker::new_waker(&self.state);
-        let mut shared_cx = Context::from_waker(&shared_waker);
+        let mut shared_cx = Context::from_waker(&self.waker);
 
         // About to call inner promise, clear the woke flag. Relaxed suffices
         // here and at the load below: the flag is only a hint that triggers
@@ -134,7 +132,7 @@ where
 
         // wake every remaining waker
         // lock ordering: we're only acquiring one lock, and the promise is already in place
-        shared_waker.wake();
+        self.waker.wake_by_ref();
 
         PollStep::ReEnter
     }

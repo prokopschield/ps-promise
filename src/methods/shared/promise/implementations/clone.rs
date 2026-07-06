@@ -9,6 +9,7 @@ where
     fn clone(&self) -> Self {
         Self {
             state: self.state.clone(),
+            waker: self.waker.clone(),
             waiter_id: self.state.next_waiter_id.fetch_add(1, Ordering::Relaxed),
         }
     }

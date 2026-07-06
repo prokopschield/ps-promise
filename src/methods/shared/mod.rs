@@ -9,6 +9,7 @@ use std::{collections::HashMap, sync::Arc};
 
 pub use promise::SharedPromise;
 use state::SharedState;
+use waker::SharedWaker;
 
 use crate::{
     sync::{
@@ -31,13 +32,18 @@ where
     /// repeated polling as long as any handle is alive. This mirrors
     /// ECMAScript promises, which can be awaited any number of times.
     pub fn shared(self) -> SharedPromise<T, E> {
+        let state = Arc::new(SharedState {
+            inner: Mutex::new(Some(self)),
+            wakers: Mutex::new(HashMap::default()),
+            next_waiter_id: AtomicUsize::new(1),
+            woke: AtomicBool::new(false),
+        });
+
+        let waker = SharedWaker::new_waker(&state);
+
         SharedPromise {
-            state: Arc::new(SharedState {
-                inner: Mutex::new(Some(self)),
-                wakers: Mutex::new(HashMap::default()),
-                next_waiter_id: AtomicUsize::new(1),
-                woke: AtomicBool::new(false),
-            }),
+            state,
+            waker,
             waiter_id: 0,
         }
     }
