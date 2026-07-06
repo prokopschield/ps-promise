@@ -95,8 +95,15 @@ where
         // the inline re-drive, and wake delivery rides on the
         // mutex-serialized waker queue instead. A racing wake that the load
         // misses is not lost; it has already fanned out to the wakers
-        // registered above. Do not "strengthen" the orderings, and do not
-        // make wake delivery depend on this flag.
+        // registered above. A consumer that parks only after that fan-out
+        // drained the queue cannot be stranded either: parking means it
+        // still saw the empty slot, so it released the `inner` lock before
+        // this driver reacquires it below, and it registered after the drain
+        // released the waker queue; that lock chain orders the wake's `woke`
+        // store before the load below, which therefore observes the wake and
+        // re-drives with the fresh registration in the queue. Do not
+        // "strengthen" the orderings, and do not make wake delivery depend
+        // on this flag.
         self.state.woke.store(false, Ordering::Relaxed);
 
         // Call inner Promise (no lock is held)
