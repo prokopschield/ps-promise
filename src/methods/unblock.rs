@@ -40,12 +40,9 @@ where
         if tokio::runtime::Handle::try_current().is_ok() {
             let handle = tokio::task::spawn_blocking(f);
 
-            return Self::lazy(async move {
-                match handle.await {
-                    Ok(inner) => inner,
-                    Err(join_err) => Err(E::task_failed(crate::TaskFailure::from(join_err))),
-                }
-            });
+            return Self::lazy(
+                async move { super::eager_with_tokio::map_join_result(handle.await) },
+            );
         }
 
         let (relay, resolve, reject) = Self::with_resolvers();

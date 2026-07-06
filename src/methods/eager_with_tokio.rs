@@ -35,7 +35,7 @@ where
 ///
 /// `Ok(inner)` is returned as-is; a [`JoinError`] is surfaced as a rejection
 /// through [`PromiseRejection::task_failed`].
-fn map_join_result<T, E>(result: Result<Result<T, E>, JoinError>) -> Result<T, E>
+pub(super) fn map_join_result<T, E>(result: Result<Result<T, E>, JoinError>) -> Result<T, E>
 where
     E: PromiseRejection,
 {
