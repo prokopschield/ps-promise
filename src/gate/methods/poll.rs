@@ -4,13 +4,18 @@ use super::super::GatedPromise;
 
 impl<T, E> GatedPromise<T, E> {
     /// Polls the inner promise once if it requested a wakeup, and otherwise
-    /// drops the poll as spurious.
+    /// drops the poll as spurious. Does nothing once the inner promise has
+    /// settled.
     ///
-    /// Always stores `cx`'s waker as the outer waker to notify on the next
-    /// wakeup request, replacing any previously stored waker. The inner
-    /// promise is polled with the wrapper's own waker; the outer waker is
-    /// never passed through.
+    /// While the inner promise is pending, stores `cx`'s waker as the outer
+    /// waker to notify on the next wakeup request, replacing any previously
+    /// stored waker. The inner promise is polled with the wrapper's own
+    /// waker; the outer waker is never passed through.
     pub fn poll(&mut self, cx: &Context<'_>) {
+        if !self.inner.is_pending() {
+            return;
+        }
+
         self.state.register(cx.waker());
 
         if !self.state.take_wake_request() {
