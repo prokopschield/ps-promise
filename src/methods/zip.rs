@@ -59,17 +59,17 @@ where
         let left_pending = this.left.poll_pending(cx);
         let right_pending = this.right.poll_pending(cx);
 
-        if this.left.is_rejected() {
+        if this.left.will_reject() {
             match this.left.consume() {
                 Some(Err(err)) => return Ready(Err(err)),
-                _ => unreachable!("The promise is rejected."),
+                _ => unreachable!("The promise will reject."),
             }
         }
 
-        if this.right.is_rejected() {
+        if this.right.will_reject() {
             match this.right.consume() {
                 Some(Err(err)) => return Ready(Err(err)),
-                _ => unreachable!("The promise is rejected."),
+                _ => unreachable!("The promise will reject."),
             }
         }
 
