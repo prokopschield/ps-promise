@@ -127,7 +127,7 @@ mod tests {
     }
 
     #[test]
-    fn map_routes_cancelled_join_error_to_error() {
+    fn map_routes_cancelled_join_error_to_aborted() {
         let join_err: JoinError = rt().block_on(async {
             let handle = tokio::spawn(std::future::pending::<Result<i32, E>>());
 
@@ -143,8 +143,8 @@ mod tests {
         let result: Result<i32, E> = map_join_result(Err(join_err));
 
         match result {
-            Err(E::TaskFailed(TaskFailure::Error(_))) => {}
-            other => panic!("expected Err(TaskFailed(Error(_))), got {other:?}"),
+            Err(E::TaskFailed(TaskFailure::Aborted)) => {}
+            other => panic!("expected Err(TaskFailed(Aborted)), got {other:?}"),
         }
     }
 

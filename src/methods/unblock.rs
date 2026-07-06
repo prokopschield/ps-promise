@@ -14,9 +14,9 @@ where
     /// - `tokio` enabled and called from within a tokio runtime context
     ///   (detected via `tokio::runtime::Handle::try_current`): dispatches to
     ///   `tokio::task::spawn_blocking`; a panic in the closure is mapped to
-    ///   [`TaskFailure::Panic`](crate::TaskFailure::Panic), and any other
-    ///   `JoinError` (runtime shutdown, cancellation) to
-    ///   [`TaskFailure::Error`](crate::TaskFailure::Error).
+    ///   [`TaskFailure::Panic`](crate::TaskFailure::Panic), and a cancelled
+    ///   task (runtime shutdown) to
+    ///   [`TaskFailure::Aborted`](crate::TaskFailure::Aborted).
     /// - Otherwise, with `smol` enabled: dispatches to `smol::unblock`.
     /// - Otherwise: dispatches to `blocking::unblock`, which uses the
     ///   `blocking` crate's runtime-independent thread pool.
