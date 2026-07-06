@@ -3,7 +3,7 @@ use std::{
     task::Poll::{Pending, Ready},
 };
 
-use crate::{Promise, PromiseRejection};
+use crate::{gate::GatedPromise, Promise, PromiseRejection};
 
 impl<T, E> Promise<T, E>
 where
@@ -26,8 +26,8 @@ where
         U: Send + 'static,
     {
         Promise::lazy(PromiseZip {
-            left: self,
-            right: other,
+            left: GatedPromise::new(self),
+            right: GatedPromise::new(other),
         })
     }
 }
@@ -38,8 +38,8 @@ where
     U: Send + 'static,
     E: PromiseRejection,
 {
-    left: Promise<T, E>,
-    right: Promise<U, E>,
+    left: GatedPromise<T, E>,
+    right: GatedPromise<U, E>,
 }
 
 impl<T, U, E> Future for PromiseZip<T, U, E>
@@ -56,34 +56,34 @@ where
     ) -> std::task::Poll<Self::Output> {
         let this = self.get_mut();
 
-        let left_pending = this.left.poll_pending(cx);
-        let right_pending = this.right.poll_pending(cx);
+        this.left.poll(cx);
+        this.right.poll(cx);
 
-        if this.left.will_reject() {
-            match this.left.consume() {
+        if this.left.inner.will_reject() {
+            match this.left.inner.consume() {
                 Some(Err(err)) => return Ready(Err(err)),
                 _ => unreachable!("The promise will reject."),
             }
         }
 
-        if this.right.will_reject() {
-            match this.right.consume() {
+        if this.right.inner.will_reject() {
+            match this.right.inner.consume() {
                 Some(Err(err)) => return Ready(Err(err)),
                 _ => unreachable!("The promise will reject."),
             }
         }
 
-        if left_pending || right_pending {
+        if this.left.inner.is_pending() || this.right.inner.is_pending() {
             return Pending;
         }
 
-        let left = match this.left.consume() {
+        let left = match this.left.inner.consume() {
             Some(Ok(value)) => value,
             Some(Err(err)) => return Ready(Err(err)),
             None => unreachable!("Both promises are settled."),
         };
 
-        let right = match this.right.consume() {
+        let right = match this.right.inner.consume() {
             Some(Ok(value)) => value,
             Some(Err(err)) => return Ready(Err(err)),
             None => unreachable!("Both promises are settled."),
@@ -95,7 +95,15 @@ where
 
 #[cfg(test)]
 mod tests {
-    use std::task::{Context, Waker};
+    use std::{
+        future::Future,
+        pin::Pin,
+        sync::{
+            atomic::{AtomicUsize, Ordering},
+            Arc,
+        },
+        task::{Context, Poll, Waker},
+    };
 
     use crate::{Promise, PromiseRejection, TaskFailure};
 
@@ -214,6 +222,45 @@ mod tests {
 
         assert!(zipped.poll_settled(&mut cx()));
         assert_eq!(zipped.consume(), Some(Err(E::TaskFailed)));
+    }
+
+    /// Inner future that counts its polls and never settles.
+    struct CountPolls {
+        polls: Arc<AtomicUsize>,
+    }
+
+    impl Future for CountPolls {
+        type Output = Result<i32, E>;
+
+        fn poll(self: Pin<&mut Self>, _cx: &mut Context<'_>) -> Poll<Self::Output> {
+            self.polls.fetch_add(1, Ordering::SeqCst);
+
+            Poll::Pending
+        }
+    }
+
+    #[test]
+    fn children_without_a_wakeup_request_are_not_repolled() {
+        let polls = Arc::new(AtomicUsize::new(0));
+
+        let never: Promise<i32, E> = Promise::lazy(CountPolls {
+            polls: polls.clone(),
+        });
+        let (pending, resolve, _reject) = Promise::<&str, E>::with_resolvers();
+
+        let mut zipped = never.zip(pending);
+
+        assert!(!zipped.poll_settled(&mut cx()));
+        assert!(!zipped.poll_settled(&mut cx()));
+        assert!(!zipped.poll_settled(&mut cx()));
+
+        assert_eq!(polls.load(Ordering::SeqCst), 1);
+
+        resolve.resolve("a");
+
+        assert!(!zipped.poll_settled(&mut cx()));
+
+        assert_eq!(polls.load(Ordering::SeqCst), 1);
     }
 
     #[test]
