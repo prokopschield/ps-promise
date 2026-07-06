@@ -46,6 +46,7 @@ mod then;
 mod then_catch;
 mod timeout;
 mod unblock;
+mod will_reject;
 mod with_resolvers;
 mod wrap;
 mod zip;
