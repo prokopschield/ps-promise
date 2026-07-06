@@ -19,8 +19,9 @@ where
     /// promise with [`TaskFailure::Panic`] mapped through
     /// [`PromiseRejection::task_failed`]. The returned future is handed to
     /// [`Promise::eager_or_lazy`]: it is eagerly scheduled when a runtime
-    /// feature is enabled and lazy otherwise, and a panic inside it likewise
-    /// surfaces as a rejection.
+    /// feature is enabled (falling back to lazy when only `tokio` is enabled
+    /// and no runtime context is active) and lazy otherwise, and a panic
+    /// inside it likewise surfaces as a rejection.
     pub fn attempt_async<F, Fut>(f: F) -> Self
     where
         F: FnOnce() -> Fut,
