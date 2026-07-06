@@ -8,7 +8,7 @@ use crate::{Promise, State, TaskFailure};
 impl<T, E> Promise<T, E> {
     /// Attempts to advance this [`Promise`] using the provided execution [`Context`].
     ///
-    /// This performs exactly one poll of the underlying future if the
+    /// Performs exactly one poll of the underlying future if the
     /// [`Promise`] is pending, and does nothing otherwise.
     pub fn poll(&mut self, cx: &mut Context<'_>) {
         let State::Pending(future) = &mut self.state else {

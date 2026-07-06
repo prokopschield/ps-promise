@@ -5,7 +5,7 @@ use crate::Promise;
 impl<T, E> Promise<T, E> {
     /// Attempts to advance this [`Promise`] immediately on the current thread.
     ///
-    /// This performs exactly one poll of the underlying future using a no-op waker.
+    /// Performs exactly one poll of the underlying future using a no-op waker.
     ///
     /// Wakes triggered during this synchronous poll are ignored.
     /// Execution resumes only when the [`Promise`] is polled again.
