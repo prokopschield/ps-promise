@@ -11,11 +11,13 @@ where
     /// Deregisters the consumer identified by `waiter_id`, dropping its
     /// registered waker if one is present.
     ///
-    /// Called from the `SharedPromise` `Drop` implementation so that a consumer
-    /// dropped while pending does not leave a stale waker behind. Only the entry
-    /// keyed by `waiter_id` is removed, so every other consumer's registration
-    /// stays intact. Does nothing if the consumer has no registered waker, for
-    /// example because a wake already drained the queue.
+    /// Called from the `SharedPromise` `Drop` implementation, so that a
+    /// consumer dropped while pending does not leave a stale waker behind, and
+    /// from the completion path, where the settling driver deregisters itself
+    /// before the fan-out. Only the entry keyed by `waiter_id` is removed, so
+    /// every other consumer's registration stays intact. Does nothing if the
+    /// consumer has no registered waker, for example because a wake already
+    /// drained the queue.
     pub(in crate::methods::shared) fn remove_waker(&self, waiter_id: usize) {
         let mut guard = self.wakers.lock().unwrap_or_else(PoisonError::into_inner);
 

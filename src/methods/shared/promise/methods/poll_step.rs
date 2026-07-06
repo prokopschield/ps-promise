@@ -18,9 +18,11 @@ where
     Rejected(E),
     /// Equivalent to `Poll::Ready(Err(E::already_consumed()))`
     Consumed,
-    /// Re-enter this Promise now, ready to be resolved.
+    /// The inner promise settled during this step; re-enter now to observe
+    /// the result.
     ReEnter,
-    /// The underlying Promise woke itself up.
+    /// A wake fired during the poll of the inner promise, either from the
+    /// promise itself or externally; re-drive it.
     Woke,
 }
 
