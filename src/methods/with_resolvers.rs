@@ -200,7 +200,11 @@ where
         };
 
         if !guard.settled {
-            guard.waker = Some(cx.waker().clone());
+            if let Some(waker) = &mut guard.waker {
+                waker.clone_from(cx.waker());
+            } else {
+                guard.waker = Some(cx.waker().clone());
+            }
 
             return Poll::Pending;
         }
