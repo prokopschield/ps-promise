@@ -1,3 +1,5 @@
+#[cfg(all(test, loom))]
+mod loom;
 mod methods;
 mod state;
 

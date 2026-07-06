@@ -1,4 +1,6 @@
 mod constants;
+#[cfg(all(test, loom))]
+mod loom;
 mod promise;
 mod state;
 mod waker;
