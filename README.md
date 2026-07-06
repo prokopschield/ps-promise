@@ -6,7 +6,9 @@ A `Promise<T, E>` is a `Future` with `Output = Result<T, E>` that owns its
 computation and remembers its outcome. It can be inspected without consuming
 the result (`peek`, `is_resolved`, `is_rejected`), polled manually (`poll`,
 `poll_sync`), consumed (`consume`), or awaited. Awaiting consumes the result;
-consuming a second time yields a synthesized `already_consumed` rejection.
+consuming a second time yields a synthesized `already_consumed` rejection,
+except for task failures, which replay through `task_failed` on every
+consumption.
 `Promise::shared` produces a handle that, like an ECMAScript promise, can be
 awaited any number of times.
 
@@ -47,7 +49,7 @@ async fn demo() -> Result<(), Error> {
 | ------------------------- | -------------------------------------------- |
 | `Promise.resolve(value)`  | `Promise::resolve(value)`                    |
 | `Promise.reject(error)`   | `Promise::reject(error)`                     |
-| `new Promise(executor)`   | `Promise::lazy`, `Promise::eager_or_lazy`    |
+| `new Promise(executor)`   | `Promise::new(executor)`                     |
 | `Promise.withResolvers()` | `Promise::with_resolvers()`                  |
 | `Promise.try(func)`       | `Promise::attempt`, `Promise::attempt_async` |
 | `Promise.all(promises)`   | `Promise::all(promises)`                     |
@@ -55,13 +57,16 @@ async fn demo() -> Result<(), Error> {
 | `Promise.race(promises)`  | `Promise::race(promises)`                    |
 | `Promise.allSettled(ps)`  | `Promise::all_settled(ps)`                   |
 | `promise.then(f)`         | `promise.then(f)`, `promise.map(f)`          |
+| `promise.then(f, g)`      | `promise.then_catch(f, g)`                   |
 | `promise.catch(f)`        | `promise.catch(f)`, `promise.map_err(f)`     |
 | `promise.finally(f)`      | `promise.finally(f)`                         |
+| thenable assimilation     | `promise.flatten()`                          |
 | awaiting more than once   | `promise.shared()`                           |
 
-Beyond the ECMAScript surface, the crate provides `timeout`, `sleep`,
-`abortable`, `unblock` (offloading blocking work), `zip`, `inspect`, and
-`inspect_err`.
+Beyond the ECMAScript surface, the crate provides the scheduling
+constructors `lazy`, `eager`, and `eager_or_lazy`, plus `timeout`, `sleep`,
+`abortable`, `detach`, `unblock` (offloading blocking work), `wrap`, `zip`,
+`inspect`, and `inspect_err`.
 
 ## Rejections
 
@@ -79,8 +84,9 @@ and the `anyhow` feature implements the trait for `anyhow::Error`.
 Without a runtime feature, every promise is lazy: the wrapped future
 progresses only while the promise is polled, and dropping the promise drops
 the future. Enabling a runtime feature makes `Promise::eager_or_lazy`, and
-every combinator built on it, spawn the future instead; a spawned future
-runs to completion even if the promise is dropped. Because Cargo unifies
+every combinator built on it, spawn the future instead (falling back to lazy
+when only `tokio` is enabled and no runtime context is active); a spawned
+future runs to completion even if the promise is dropped. Because Cargo unifies
 features across the whole build graph, any dependency enabling a runtime
 feature flips this behavior for every crate in the build; when laziness is
 required for correctness, construct the promise with `Promise::lazy`.

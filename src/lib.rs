@@ -15,16 +15,17 @@
 //!
 //! - `Promise.resolve` and `Promise.reject`: [`Promise::resolve`] and
 //!   [`Promise::reject`]
-//! - `new Promise(executor)`: [`Promise::lazy`] and
-//!   [`Promise::eager_or_lazy`]
+//! - `new Promise(executor)`: [`Promise::new`]
 //! - `Promise.withResolvers`: [`Promise::with_resolvers`]
 //! - `Promise.try`: [`Promise::attempt`] and [`Promise::attempt_async`]
 //! - `Promise.all`, `Promise.any`, `Promise.race`, and `Promise.allSettled`:
 //!   [`Promise::all`], [`Promise::any`], [`Promise::race`], and
 //!   [`Promise::all_settled`]
 //! - `then`, `catch`, and `finally`: [`Promise::then`], [`Promise::catch`],
-//!   and [`Promise::finally`], plus [`Promise::map`], [`Promise::map_err`],
+//!   and [`Promise::finally`], plus [`Promise::then_catch`] for the
+//!   two-argument `then`, and [`Promise::map`], [`Promise::map_err`],
 //!   [`Promise::inspect`], and [`Promise::inspect_err`]
+//! - thenable assimilation: [`Promise::flatten`]
 //!
 //! # Rejections
 //!
