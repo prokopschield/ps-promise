@@ -66,7 +66,8 @@ async fn demo() -> Result<(), Error> {
 Beyond the ECMAScript surface, the crate provides the scheduling
 constructors `lazy`, `eager`, and `eager_or_lazy`, plus `timeout`, `sleep`,
 `abortable`, `detach`, `unblock` (offloading blocking work), `wrap`, `zip`,
-`inspect`, and `inspect_err`.
+`inspect`, and `inspect_err`. `eager` and `detach` exist only when a runtime
+feature (`tokio` or `smol`) is enabled.
 
 ## Rejections
 
