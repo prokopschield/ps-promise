@@ -18,11 +18,11 @@ where
     /// Dispatch is selected at compile time based on which runtime features
     /// are enabled, with a runtime check when both are on:
     ///
-    /// - Only `tokio` enabled: spawns via [`tokio::spawn`] and drops the
+    /// - Only `tokio` enabled: spawns via `tokio::spawn` and drops the
     ///   `JoinHandle`, which detaches the task.
-    /// - Only `smol` enabled: spawns via [`smol::spawn`] and calls
-    ///   [`Task::detach`](smol::Task::detach); without this the task would be
-    ///   cancelled on drop.
+    /// - Only `smol` enabled: spawns via `smol::spawn` and calls
+    ///   `smol::Task::detach`; without this the task would be cancelled on
+    ///   drop.
     /// - Both enabled: dispatches to the tokio path when called from within a
     ///   tokio runtime context (detected via
     ///   `tokio::runtime::Handle::try_current`), otherwise to the smol path.
@@ -34,7 +34,7 @@ where
     ///
     /// Panics if only the `tokio` feature is enabled and this method is
     /// called outside of a tokio runtime context, propagated from
-    /// [`tokio::spawn`]. With the `smol` feature enabled there is no such
+    /// `tokio::spawn`. With the `smol` feature enabled there is no such
     /// requirement: outside a tokio runtime context the promise is spawned
     /// on smol's global executor instead.
     pub fn detach(self) {
