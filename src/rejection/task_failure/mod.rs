@@ -14,8 +14,9 @@ use thiserror::Error;
 #[derive(Clone, Error)]
 #[non_exhaustive]
 pub enum TaskFailure {
-    /// The task was aborted through an
-    /// [`AbortHandle`](crate::AbortHandle).
+    /// The task was aborted, either through an
+    /// [`AbortHandle`](crate::AbortHandle) or by external cancellation of
+    /// the underlying task, such as a tokio runtime shutdown.
     #[error("promise aborted")]
     Aborted,
 
