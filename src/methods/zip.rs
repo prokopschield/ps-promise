@@ -184,6 +184,38 @@ mod tests {
         assert_eq!(zipped.consume(), Some(Err(E::Code(2))));
     }
 
+    /// A child that was consumed before being handed to `zip` rejects the
+    /// result on the first poll, even while the sibling is still pending.
+    #[test]
+    fn consumed_input_short_circuits_pending() {
+        let mut consumed: Promise<&str, E> = Promise::resolve("a");
+
+        assert_eq!(consumed.consume(), Some(Ok("a")));
+
+        let left: Promise<i32, E> = Promise::lazy(std::future::pending());
+
+        let mut zipped = left.zip(consumed);
+
+        assert!(zipped.poll_settled(&mut cx()));
+        assert_eq!(zipped.consume(), Some(Err(E::AlreadyConsumed)));
+    }
+
+    /// A child that failed rejects the result on the first poll, even while
+    /// the sibling is still pending.
+    #[test]
+    fn failed_input_short_circuits_pending() {
+        let mut failed: Promise<&str, E> = Promise::lazy(async { panic!("boom") });
+
+        assert!(failed.poll_settled(&mut cx()));
+
+        let left: Promise<i32, E> = Promise::lazy(std::future::pending());
+
+        let mut zipped = left.zip(failed);
+
+        assert!(zipped.poll_settled(&mut cx()));
+        assert_eq!(zipped.consume(), Some(Err(E::TaskFailed)));
+    }
+
     #[test]
     fn repoll_after_success_yields_already_consumed() {
         let left: Promise<i32, E> = Promise::lazy(async { Ok(1) });
