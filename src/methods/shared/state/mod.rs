@@ -1,15 +1,14 @@
 mod methods;
 
-use std::{
-    collections::HashMap,
+use std::{collections::HashMap, task::Waker};
+
+use crate::{
     sync::{
         atomic::{AtomicBool, AtomicUsize},
         Mutex,
     },
-    task::Waker,
+    Promise, PromiseRejection,
 };
-
-use crate::{Promise, PromiseRejection};
 
 pub(super) struct SharedState<T, E>
 where

@@ -1,9 +1,6 @@
-use std::{
-    sync::{atomic::Ordering, PoisonError},
-    task::Context,
-};
+use std::{sync::PoisonError, task::Context};
 
-use crate::PromiseRejection;
+use crate::{sync::atomic::Ordering, PromiseRejection};
 
 use super::super::super::waker::SharedWaker;
 use super::super::SharedPromise;

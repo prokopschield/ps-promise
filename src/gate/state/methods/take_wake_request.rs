@@ -1,4 +1,4 @@
-use std::sync::atomic::Ordering;
+use crate::sync::atomic::Ordering;
 
 use super::super::GateState;
 

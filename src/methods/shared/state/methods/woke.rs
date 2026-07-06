@@ -1,6 +1,4 @@
-use std::sync::atomic::Ordering;
-
-use crate::PromiseRejection;
+use crate::{sync::atomic::Ordering, PromiseRejection};
 
 use super::super::SharedState;
 

@@ -63,6 +63,7 @@ mod gate;
 mod implementations;
 mod methods;
 mod rejection;
+mod sync;
 
 use std::{future::Future, pin::Pin};
 

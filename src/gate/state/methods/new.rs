@@ -1,4 +1,4 @@
-use std::sync::{atomic::AtomicBool, Mutex};
+use crate::sync::{atomic::AtomicBool, Mutex};
 
 use super::super::GateState;
 

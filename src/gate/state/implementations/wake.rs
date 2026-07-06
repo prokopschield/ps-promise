@@ -1,7 +1,9 @@
 use std::{
-    sync::{atomic::Ordering, Arc, PoisonError},
+    sync::{Arc, PoisonError},
     task::Wake,
 };
+
+use crate::sync::atomic::Ordering;
 
 use super::super::GateState;
 

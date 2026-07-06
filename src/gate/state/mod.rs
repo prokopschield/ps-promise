@@ -1,10 +1,9 @@
 mod implementations;
 mod methods;
 
-use std::{
-    sync::{atomic::AtomicBool, Mutex},
-    task::Waker,
-};
+use std::task::Waker;
+
+use crate::sync::{atomic::AtomicBool, Mutex};
 
 /// State shared between a [`GatedPromise`](super::GatedPromise) and the waker
 /// it passes to the inner promise: the most recently received outer waker and

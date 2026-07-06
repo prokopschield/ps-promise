@@ -3,18 +3,18 @@ mod promise;
 mod state;
 mod waker;
 
-use std::{
-    collections::HashMap,
-    sync::{
-        atomic::{AtomicBool, AtomicUsize},
-        Arc, Mutex,
-    },
-};
+use std::{collections::HashMap, sync::Arc};
 
 pub use promise::SharedPromise;
 use state::SharedState;
 
-use crate::{Promise, PromiseRejection};
+use crate::{
+    sync::{
+        atomic::{AtomicBool, AtomicUsize},
+        Mutex,
+    },
+    Promise, PromiseRejection,
+};
 
 impl<T, E> Promise<T, E>
 where
