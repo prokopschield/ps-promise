@@ -78,7 +78,7 @@ pub type BoxedPromiseFuture<T, E> = Pin<Box<dyn Future<Output = Result<T, E>> + 
 ///
 /// `Promise<T, E>` implements [`Future`] with `Output = Result<T, E>`. See
 /// the [crate-level documentation](crate) for an overview.
-#[must_use = "Promises don't do anything unless you await them!"]
+#[must_use = "Await this Promise to observe its outcome, or call `.detach()` to explicitly discard it."]
 pub struct Promise<T, E> {
     pub(crate) state: State<T, E>,
 }
