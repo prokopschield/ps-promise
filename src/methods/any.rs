@@ -15,7 +15,7 @@ where
     ///
     /// Mirrors ECMAScript's `Promise.any`, with `Vec<E>` in place of
     /// `AggregateError`: rejections appear in input order, and an empty
-    /// input rejects immediately with an empty `Vec`. The returned
+    /// input rejects on the first poll with an empty `Vec`. The returned
     /// [`Promise`] is lazy.
     pub fn any<I>(promises: I) -> Promise<T, Vec<E>>
     where

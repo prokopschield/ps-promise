@@ -14,8 +14,8 @@ where
     /// the first rejection it observes.
     ///
     /// Mirrors ECMAScript's `Promise.all`: values appear in input order, and
-    /// an empty input resolves immediately with an empty `Vec`. The returned
-    /// [`Promise`] is lazy.
+    /// an empty input resolves on the first poll with an empty `Vec`. The
+    /// returned [`Promise`] is lazy.
     pub fn all<I>(promises: I) -> Promise<Vec<T>, E>
     where
         I: IntoIterator<Item = Self>,
