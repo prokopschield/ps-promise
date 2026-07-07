@@ -58,6 +58,8 @@
 //! - `smol`: eager scheduling via `smol::spawn` and smol-backed timers.
 //! - `anyhow`: implements [`PromiseRejection`] for `anyhow::Error`.
 
+#![cfg_attr(docsrs, feature(doc_cfg))]
+
 mod features;
 mod gate;
 mod implementations;

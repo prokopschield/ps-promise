@@ -12,6 +12,7 @@ categories = ["asynchronous", "concurrency"]
 
 [package.metadata.docs.rs]
 all-features = true
+rustdoc-args = ["--cfg", "docsrs"]
 
 [dependencies]
 anyhow = { version = "1", optional = true }
@@ -41,7 +42,7 @@ unwrap_used = "warn"
 
 [lints.rust]
 missing_docs = "warn"
-unexpected_cfgs = { level = "warn", check-cfg = ["cfg(loom)"] }
+unexpected_cfgs = { level = "warn", check-cfg = ["cfg(docsrs)", "cfg(loom)"] }
 unsafe_code = "forbid"
 
 [profile.dev]
