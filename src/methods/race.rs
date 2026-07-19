@@ -143,4 +143,19 @@ mod tests {
         assert_eq!(polls.load(Ordering::SeqCst), 1);
         assert_eq!(race.consume(), Some(Ok(7)));
     }
+
+    /// A child that was consumed before being handed to `race` settles the
+    /// race on the first poll, even while a sibling is still pending.
+    #[test]
+    fn consumed_input_settles_the_race() {
+        let mut consumed: Promise<i32, E> = Promise::resolve(1);
+
+        assert_eq!(consumed.consume(), Some(Ok(1)));
+
+        let mut race: Promise<i32, E> =
+            Promise::race([Promise::lazy(std::future::pending()), consumed]);
+
+        assert!(race.poll_settled(&mut cx()));
+        assert_eq!(race.consume(), Some(Err(E::AlreadyConsumed)));
+    }
 }
