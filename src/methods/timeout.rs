@@ -11,7 +11,9 @@ where
     /// within `duration`.
     ///
     /// The deadline timer is provided by [`Promise::sleep`] and follows its
-    /// runtime dispatch. On expiry the promise rejects with
+    /// runtime dispatch. The returned [`Promise`] is lazy; the timer starts
+    /// at its first poll, not when `timeout` is called, even when `self`
+    /// is already running eagerly. On expiry the promise rejects with
     /// [`TaskFailure::Timeout`], mapped through
     /// [`PromiseRejection::task_failed`].
     pub fn timeout(self, duration: Duration) -> Self {
