@@ -34,6 +34,10 @@
 //! already taken and for task failure. Panics inside a promise body are
 //! caught and surface as rejections through
 //! [`PromiseRejection::task_failed`] instead of unwinding into the caller.
+//! Only these panics, caught while the promise itself is polled, replay on
+//! every consumption; a rejection merely constructed through
+//! [`PromiseRejection::task_failed`], such as an executor panic in
+//! [`Promise::new`], is an ordinary rejection and is consumed once.
 //! See the trait documentation for the provided escape hatches.
 //!
 //! # Scheduling
